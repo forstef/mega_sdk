@@ -182,6 +182,7 @@ set(SDKLIB_SOURCES
     src/user_attribute_manager.cpp
     src/megautils.cpp
     src/log_level.cpp
+    src/sc_response_processor.cpp
 
     # megaapi_impl related sources
     src/impl/share.cpp
