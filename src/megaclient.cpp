@@ -7241,23 +7241,23 @@ void MegaClient::sc_paymentreminder(JSON* json)
     {
         switch (json->getnameid())
         {
-            case makeNameid("ts"):
-                expiryts = int(json->getint()); // timestamp
-                break;
+        case makeNameid("ts"):
+            expiryts = int(json->getint()); // timestamp
+            break;
 
-            case EOO:
-                if (statecurrent && !loggedIntoFolder())
-                {
-                    useralerts.add(new UserAlert::PaymentReminder(expiryts ? expiryts : m_time(),
-                                                                  useralerts.nextId()));
-                }
+        case EOO:
+            if (statecurrent && !loggedIntoFolder())
+            {
+                useralerts.add(new UserAlert::PaymentReminder(expiryts ? expiryts : m_time(),
+                                                                useralerts.nextId()));
+            }
+            return;
+
+        default:
+            if (!json->storeobject())
+            {
                 return;
-
-            default:
-                if (!json->storeobject())
-                {
-                    return;
-                }
+            }
         }
     }
 }
@@ -7881,97 +7881,97 @@ void MegaClient::sc_ph(JSON* json)
     {
         switch (json->getnameid())
         {
-            case makeNameid("h"):
-                h = json->gethandle(MegaClient::NODEHANDLE);
-                break;
-            case makeNameid("ph"):
-                ph = json->gethandle(MegaClient::NODEHANDLE);
-                break;
-            case makeNameid("w"):
-                static_cast<void>(json->storeobject(&authKey));
-                break;
-            case name_id::d:
-                deleted = (json->getint() == 1);
-                break;
-            case makeNameid("n"):
-                created = (json->getint() == 1);
-                break;
-            case name_id::u:
-                updated = (json->getint() == 1);
-                break;
-            case makeNameid("down"):
-            {
-                int down = int(json->getint());
-                takendown = (down == 1);
-                reinstated = (down == 0);
-            }
+        case makeNameid("h"):
+            h = json->gethandle(MegaClient::NODEHANDLE);
             break;
-            case makeNameid("ets"):
-                ets = json->getint();
+        case makeNameid("ph"):
+            ph = json->gethandle(MegaClient::NODEHANDLE);
+            break;
+        case makeNameid("w"):
+            static_cast<void>(json->storeobject(&authKey));
+            break;
+        case name_id::d:
+            deleted = (json->getint() == 1);
+            break;
+        case makeNameid("n"):
+            created = (json->getint() == 1);
+            break;
+        case name_id::u:
+            updated = (json->getint() == 1);
+            break;
+        case makeNameid("down"):
+        {
+            int down = int(json->getint());
+            takendown = (down == 1);
+            reinstated = (down == 0);
+        }
+        break;
+        case makeNameid("ets"):
+            ets = json->getint();
+            break;
+        case makeNameid("ts"):
+            cts = json->getint();
+            break;
+        case EOO:
+            done = true;
+            if (ISUNDEF(h))
+            {
+                LOG_err << "h element not provided";
                 break;
-            case makeNameid("ts"):
-                cts = json->getint();
+            }
+            if (ISUNDEF(ph))
+            {
+                LOG_err << "ph element not provided";
                 break;
-            case EOO:
-                done = true;
-                if (ISUNDEF(h))
+            }
+            if (!deleted && !created && !updated && !takendown)
+            {
+                LOG_err << "d/n/u/down element not provided";
+                break;
+            }
+            if (!deleted && !cts)
+            {
+                LOG_err << "creation timestamp element not provided";
+                break;
+            }
+
+            n = nodebyhandle(h);
+            if (n)
+            {
+                if ((takendown || reinstated) && !ISUNDEF(h) && statecurrent &&
+                    !loggedIntoFolder())
                 {
-                    LOG_err << "h element not provided";
-                    break;
-                }
-                if (ISUNDEF(ph))
-                {
-                    LOG_err << "ph element not provided";
-                    break;
-                }
-                if (!deleted && !created && !updated && !takendown)
-                {
-                    LOG_err << "d/n/u/down element not provided";
-                    break;
-                }
-                if (!deleted && !cts)
-                {
-                    LOG_err << "creation timestamp element not provided";
-                    break;
+                    useralerts.add(new UserAlert::Takedown(takendown,
+                                                            reinstated,
+                                                            n->type,
+                                                            h,
+                                                            m_time(),
+                                                            useralerts.nextId()));
                 }
 
-                n = nodebyhandle(h);
-                if (n)
+                if (deleted) // deletion
                 {
-                    if ((takendown || reinstated) && !ISUNDEF(h) && statecurrent &&
-                        !loggedIntoFolder())
-                    {
-                        useralerts.add(new UserAlert::Takedown(takendown,
-                                                               reinstated,
-                                                               n->type,
-                                                               h,
-                                                               m_time(),
-                                                               useralerts.nextId()));
-                    }
-
-                    if (deleted) // deletion
-                    {
-                        n->plink.reset();
-                    }
-                    else
-                    {
-                        n->setpubliclink(ph, cts, ets, takendown, authKey);
-                    }
-
-                    n->changed.publiclink = true;
-                    mNodeManager.notifyNode(n);
+                    n->plink.reset();
                 }
                 else
                 {
-                    LOG_warn << "node for public link not found";
+                    n->setpubliclink(ph, cts, ets, takendown, authKey);
                 }
 
-                break;
-            default:
-                if (!json->storeobject())
-                {
-                    return;
-                }
+                n->changed.publiclink = true;
+                mNodeManager.notifyNode(n);
+            }
+            else
+            {
+                LOG_warn << "node for public link not found";
+            }
+
+            break;
+        default:
+            if (!json->storeobject())
+            {
+                return;
+            }
         }
     }
 }
@@ -7989,58 +7989,58 @@ void MegaClient::sc_se(JSON* json)
     {
         switch (json->getnameid())
         {
-            case makeNameid("e"):
-                json->storeobject(&email);
+        case makeNameid("e"):
+            json->storeobject(&email);
+            break;
+        case name_id::u:
+            uh = json->gethandle(USERHANDLE);
+            break;
+        case makeNameid("s"):
+            status = int(json->getint());
+            break;
+        case EOO:
+            done = true;
+            if (email.empty())
+            {
+                LOG_err << "e element not provided";
                 break;
-            case name_id::u:
-                uh = json->gethandle(USERHANDLE);
+            }
+            if (uh == UNDEF)
+            {
+                LOG_err << "u element not provided";
                 break;
-            case makeNameid("s"):
-                status = int(json->getint());
+            }
+            if (status == -1)
+            {
+                LOG_err << "s element not provided";
                 break;
-            case EOO:
-                done = true;
-                if (email.empty())
-                {
-                    LOG_err << "e element not provided";
-                    break;
-                }
-                if (uh == UNDEF)
-                {
-                    LOG_err << "u element not provided";
-                    break;
-                }
-                if (status == -1)
-                {
-                    LOG_err << "s element not provided";
-                    break;
-                }
-                if (status != EMAIL_REMOVED && status != EMAIL_PENDING_REMOVED &&
-                    status != EMAIL_PENDING_ADDED && status != EMAIL_FULLY_ACCEPTED)
-                {
-                    LOG_err << "unknown value for s element: " << status;
-                    break;
-                }
+            }
+            if (status != EMAIL_REMOVED && status != EMAIL_PENDING_REMOVED &&
+                status != EMAIL_PENDING_ADDED && status != EMAIL_FULLY_ACCEPTED)
+            {
+                LOG_err << "unknown value for s element: " << status;
+                break;
+            }
 
-                u = finduser(uh);
-                if (!u)
-                {
-                    LOG_warn << "user for email change not found. Not a contact?";
-                }
-                else if (status == EMAIL_FULLY_ACCEPTED)
-                {
-                    LOG_debug << "Email changed from `" << u->email << "` to `" << email << "`";
+            u = finduser(uh);
+            if (!u)
+            {
+                LOG_warn << "user for email change not found. Not a contact?";
+            }
+            else if (status == EMAIL_FULLY_ACCEPTED)
+            {
+                LOG_debug << "Email changed from `" << u->email << "` to `" << email << "`";
 
-                    setEmail(u, email);
-                }
-                // TODO: manage different status once multiple-emails is supported
+                setEmail(u, email);
+            }
+            // TODO: manage different status once multiple-emails is supported
 
-                break;
-            default:
-                if (!json->storeobject())
-                {
-                    return;
-                }
+            break;
+        default:
+            if (!json->storeobject())
+            {
+                return;
+            }
         }
     }
 }
@@ -8531,8 +8531,7 @@ void MegaClient::sc_scheduledmeetings(JSON* json)
 
                 if (res)
                 {
-                    if (isNewSchedMeeting)
-                        createNewSMAlert(ou, chat->getChatId(), schedId, parentSchedId, overrides);
+                    if (isNewSchedMeeting) createNewSMAlert(ou, chat->getChatId(), schedId, parentSchedId, overrides);
                     else
                         createUpdatedSMAlert(ou,
                                              chat->getChatId(),
@@ -8545,7 +8544,7 @@ void MegaClient::sc_scheduledmeetings(JSON* json)
         }
 
         clearSchedOccurrences(*chat);
-        chat->setTag(0); // external change
+        chat->setTag(0);    // external change
         notifychat(chat);
     }
 }
@@ -8644,8 +8643,7 @@ void MegaClient::sc_uec(JSON* json)
                 {
                     LOG_warn << "Missing user handle in `uec` action packet";
                 }
-                if (u == me && email.size())
-                    setEmail(ownuser(), email);
+                if (u == me && email.size()) setEmail(ownuser(), email);
                 app->account_updated();
                 app->notify_confirm_user_email(u, email.c_str());
                 ephemeralSession = false;
@@ -8778,16 +8776,16 @@ void MegaClient::sc_la(JSON* json)
     {
         switch (json->getnameid())
         {
-            case EOO:
-                useralerts.onAcknowledgeReceived();
-                return;
+        case EOO:
+            useralerts.onAcknowledgeReceived();
+            return;
 
-            default:
-                if (!json->storeobject())
-                {
-                    LOG_warn << "Failed to parse `la` action packet";
-                    return;
-                }
+        default:
+            if (!json->storeobject())
+            {
+                LOG_warn << "Failed to parse `la` action packet";
+                return;
+            }
         }
     }
 }
@@ -8841,9 +8839,8 @@ void MegaClient::sc_ub(JSON* json)
                     sendevent(99449, err.c_str(), 0);
                     return;
                 }
-                if ((mode != BIZ_MODE_MASTER && mode != BIZ_MODE_SUBUSER) &&
-                    (status != BIZ_STATUS_INACTIVE)) // when inactive, `m` might be missing
-                                                     // (unknown/undefined)
+                if ( (mode != BIZ_MODE_MASTER && mode != BIZ_MODE_SUBUSER)
+                 && (status != BIZ_STATUS_INACTIVE) )   // when inactive, `m` might be missing (unknown/undefined)
                 {
                     LOG_err << "Unexpected mode for business account at `ub`. Mode: " << mode;
                     return;
@@ -8869,7 +8866,7 @@ void MegaClient::sc_ub(JSON* json)
                 if (prevBizStatus == BIZ_STATUS_INACTIVE)
                 {
                     app->account_updated();
-                    getuserdata(reqtag); // update account flags
+                    getuserdata(reqtag);  // update account flags
                 }
 
                 return;
