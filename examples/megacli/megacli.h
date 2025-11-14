@@ -72,25 +72,17 @@ struct AppFileGet : public AppFile
     std::function<void()> onCompleted;
 
     bool noRetries = false;
-
     bool failed(error e, MegaClient* c) override
     {
         if (noRetries) return false;
         return File::failed(e, c);
     }
 
-    AppFileGet(Node*,
-               NodeHandle = NodeHandle(),
-               const byte* = NULL,
-               m_off_t = -1,
-               m_time_t = 0,
-               const string* = NULL,
-               const string* = NULL,
-               const string& targetfolder = "");
+    AppFileGet(Node*, NodeHandle = NodeHandle(), const byte* = NULL, m_off_t = -1, m_time_t = 0, const string* = NULL, const string* = NULL, const string& targetfolder = "");
     ~AppFileGet();
 };
 
-struct AppFilePut: public AppFile
+struct AppFilePut : public AppFile
 {
     void start() override;
     void update();
@@ -102,11 +94,9 @@ struct AppFilePut: public AppFile
     std::function<void()> onCompleted;
 
     bool noRetries = false;
-
     bool failed(error e, MegaClient* c) override
     {
-        if (noRetries)
-            return false;
+        if (noRetries) return false;
         return File::failed(e, c);
     }
 
@@ -119,7 +109,7 @@ struct AppReadContext
     SymmCipher key;
 };
 
-struct DemoApp: public MegaApp
+struct DemoApp : public MegaApp
 {
     FileAccess* newfile();
 
@@ -127,10 +117,10 @@ struct DemoApp: public MegaApp
 
     void request_response_progress(m_off_t, m_off_t) override;
 
-    void prelogin_result(int version, string* email, string* salt, error e) override;
+    void prelogin_result(int version, string* email, string *salt, error e) override;
     void login_result(error) override;
     void multifactorauthdisable_result(error) override;
-    void multifactorauthsetup_result(string* code, error e) override;
+    void multifactorauthsetup_result(string *code, error e) override;
     void multifactorauthcheck_result(int enabled) override;
 
     void ephemeral_result(error) override;
@@ -146,13 +136,8 @@ struct DemoApp: public MegaApp
 
     void getrecoverylink_result(error) override;
     void queryrecoverylink_result(error) override;
-    void queryrecoverylink_result(int type,
-                                  const char* email,
-                                  const char* ip,
-                                  time_t ts,
-                                  handle uh,
-                                  const vector<string>* emails) override;
-    void getprivatekey_result(error, const byte* privk, const size_t len_privk) override;
+    void queryrecoverylink_result(int type, const char *email, const char *ip, time_t ts, handle uh, const vector<string> *emails) override;
+    void getprivatekey_result(error,  const byte *privk, const size_t len_privk) override;
     void confirmrecoverylink_result(error) override;
     void confirmcancellink_result(error) override;
     void validatepassword_result(error) override;
@@ -166,7 +151,7 @@ struct DemoApp: public MegaApp
     void nodes_current() override;
     void account_updated() override;
     void notify_confirmation(const char *email) override;
-    void notify_confirm_user_email(handle user, const char* email) override;
+    void notify_confirm_user_email(handle user, const char *email) override;
     void sets_updated(Set**, int) override;
     void setelements_updated(SetElement**, int) override;
 
@@ -185,17 +170,10 @@ struct DemoApp: public MegaApp
     virtual void chatpresenceurl_result(string *, error) override;
     void chatlink_result(handle, error) override;
     void chatlinkclose_result(error) override;
-    void chatlinkurl_result(handle chatid,
-                            int shard,
-                            string* url,
-                            string* ct,
-                            int numPeers,
-                            m_time_t ts,
-                            bool meetingRoom,
-                            int chatOptions,
+    void chatlinkurl_result(handle chatid, int shard, string* url, string* ct, int numPeers,
+                            m_time_t ts, bool meetingRoom, int chatOptions,
                             const std::vector<std::unique_ptr<ScheduledMeeting>>* smList,
-                            handle callid,
-                            error e) override;
+                            handle callid, error e) override;
 
     void chatlinkjoin_result(error) override;
 
@@ -247,16 +225,7 @@ struct DemoApp: public MegaApp
     void openfilelink_result(const Error&) override;
     void openfilelink_result(handle, const byte*, m_off_t, string*, string*, int) override;
 
-    void folderlinkinfo_result(error,
-                               handle,
-                               handle,
-                               string*,
-                               string*,
-                               m_off_t,
-                               uint32_t,
-                               uint32_t,
-                               m_off_t,
-                               uint32_t) override;
+    void folderlinkinfo_result(error, handle, handle, string *, string*, m_off_t, uint32_t, uint32_t, m_off_t, uint32_t) override;
 
     dstime pread_failure(const Error&, int, void*, dstime) override;
     bool pread_data(byte*, m_off_t, m_off_t, m_off_t, m_off_t, void*) override;
@@ -279,10 +248,7 @@ struct DemoApp: public MegaApp
     void syncupdate_scanning(bool) override;
     void syncupdate_stalled(bool stalled) override;
     void syncupdate_conflicts(bool conflicts) override;
-    void syncupdate_treestate(const SyncConfig& config,
-                              const LocalPath&,
-                              treestate_t,
-                              nodetype_t) override;
+    void syncupdate_treestate(const SyncConfig& config, const LocalPath&, treestate_t, nodetype_t) override;
 #endif
 
     void upgrading_security() override;
@@ -309,7 +275,7 @@ struct DemoApp: public MegaApp
     void smsverificationcheck_result(error, string*) override;
 
     void getbanners_result(error) override;
-    void getbanners_result(vector<tuple<int, string, string, string, string, string, string>>&& banners) override;
+    void getbanners_result(vector< tuple<int, string, string, string, string, string, string> >&& banners) override;
 
     void dismissbanner_result(error) override;
 
@@ -336,9 +302,7 @@ struct DemoAppFolder : public DemoApp
     void fetchnodes_result(const Error&);
 
     void nodes_updated(sharedNode_vector* nodes, int count);
-
     void users_updated(User**, int) {}
-
     void pcrs_updated(PendingContactRequest**, int) {}
 };
 

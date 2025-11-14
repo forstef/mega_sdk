@@ -38,7 +38,6 @@
 #include "pubkeyaction.h"
 #include "pwm_file_parser.h"
 #include "request.h"
-#include "sc_response_processor.h"
 #include "setandelement.h"
 #include "sharenodekeys.h"
 #include "sync.h"
@@ -55,8 +54,7 @@
 
 #include <optional>
 
-namespace mega
-{
+namespace mega {
 
 class Logger;
 struct NetworkConnectivityTestResults;
@@ -64,30 +62,27 @@ struct NetworkConnectivityTestResults;
 class MEGA_API FetchNodesStats
 {
 public:
-    enum
-    {
+    enum {
         MODE_DB = 0,
         MODE_API = 1,
         MODE_NONE = 2
     };
 
-    enum
-    {
+    enum {
         TYPE_ACCOUNT = 0,
         TYPE_FOLDER = 1,
         TYPE_NONE = 2
     };
 
-    enum
-    {
+    enum {
         API_CACHE = 0,
-        API_NO_CACHE = 1, // use this for DB mode
+        API_NO_CACHE = 1,    // use this for DB mode
         API_NONE = 2
     };
 
     FetchNodesStats();
     void init();
-    void toJsonArray(string* json);
+    void toJsonArray(string *json);
 
     //////////////////
     // General info //
@@ -147,8 +142,7 @@ public:
      * @brief Time until the first byte read
      *
      * From DB: time until the first record read from the database
-     * From API: time until the first byte read in response to the fetchnodes command (errors
-     * excluded)
+     * From API: time until the first byte read in response to the fetchnodes command (errors excluded)
      */
     dstime timeToFirstByte;
 
@@ -204,10 +198,9 @@ public:
 
 /**
  * @brief A helper class that keeps the SN (sequence number) members in sync and well initialized.
- *  The server-client sequence number is updated along with every batch of actionpackets received
- * from API It is used to commit the open transaction in DB, so the account's local state is
- * persisted. Upon resumption, the scsn is sent to API, which provides the possible updates missing
- * while the client was not running
+ *  The server-client sequence number is updated along with every batch of actionpackets received from API
+ *  It is used to commit the open transaction in DB, so the account's local state is persisted. Upon resumption,
+ *  the scsn is sent to API, which provides the possible updates missing while the client was not running
  */
 class SCSN
 {
@@ -218,6 +211,7 @@ class SCSN
     bool stopsc = false;
 
 public:
+
     bool setScsn(JSON*);
     void setScsn(handle);
     void stopScsn();
@@ -234,7 +228,7 @@ public:
     void clear();
 };
 
-std::ostream& operator<<(std::ostream& os, const SCSN& scsn);
+std::ostream& operator<<(std::ostream &os, const SCSN &scsn);
 
 struct SyncdownContext
 {
@@ -242,7 +236,7 @@ struct SyncdownContext
     bool mBackupForeignChangeDetected = false;
 }; // SyncdownContext
 
-class ScDbStateRecord: public Cacheable
+class ScDbStateRecord : public Cacheable
 {
 public:
     string seqTag;
@@ -255,8 +249,7 @@ public:
 // Class to help with upload of file attributes
 struct UploadWaitingForFileAttributes
 {
-    struct FileAttributeValues
-    {
+    struct FileAttributeValues {
         handle fileAttributeHandle = UNDEF;
         bool valueIsSet = false;
     };
@@ -274,13 +267,9 @@ struct UploadWaitingForFileAttributes
 // Class to help with upload of file attributes
 // One entry for each active upload that has file attribute involvement
 // Should the transfer be cancelled, this data structure is easily cleaned.
-struct FileAttributesPending:
-    public mapWithLookupExisting<UploadHandle, UploadWaitingForFileAttributes>
+struct FileAttributesPending : public mapWithLookupExisting<UploadHandle, UploadWaitingForFileAttributes>
 {
-    void setFileAttributePending(UploadHandle h,
-                                 fatype type,
-                                 Transfer* t,
-                                 bool alreadyavailable = false)
+    void setFileAttributePending(UploadHandle h, fatype type, Transfer* t, bool alreadyavailable = false)
     {
         auto& entry = operator[](h);
         entry.pendingfa[type].valueIsSet = alreadyavailable;
@@ -294,9 +283,7 @@ class MegaClient;
 class MEGA_API KeyManager
 {
 public:
-    KeyManager(MegaClient& client):
-        mClient(client)
-    {}
+    KeyManager(MegaClient& client) : mClient(client) {}
 
     // it's called to initialize the ^!keys attribute, since it does not exist yet
     // prRSA is expected in base64 and 4 Ints format: pqdu
@@ -349,8 +336,7 @@ public:
 
     void loadShareKeys();
 
-    void commit(std::function<void()> applyChanges,
-                std::function<void(error e)> completion = nullptr);
+    void commit(std::function<void()> applyChanges, std::function<void (error e)> completion = nullptr);
     void reset();
 
     // returns a formatted string, for logging purposes
@@ -363,29 +349,23 @@ public:
     void setContactVerificationWarning(bool enabled);
 
     // this method allows to change the manual verification feature-flag for testing purposes
-    void setManualVerificationFlag(bool enabled)
-    {
-        mManualVerification = enabled;
-    }
+    void setManualVerificationFlag(bool enabled) { mManualVerification = enabled; }
 
     // query whether manual verification is required.
-    bool getManualVerificationFlag() const
-    {
-        return mManualVerification;
-    }
+    bool getManualVerificationFlag() const { return mManualVerification; }
 
 protected:
     std::deque<std::pair<std::function<void()>, std::function<void(error e)>>> nextQueue;
     std::deque<std::pair<std::function<void()>, std::function<void(error e)>>> activeQueue;
 
     void nextCommit();
-    void tryCommit(Error e, std::function<void()> completion);
-    void updateAttribute(std::function<void(Error)> completion);
+    void tryCommit(Error e, std::function<void ()> completion);
+    void updateAttribute(std::function<void (Error)> completion);
 
 private:
+
     // Tags used by TLV blob
-    enum
-    {
+    enum {
         TAG_VERSION = 1,
         TAG_CREATION_TIME = 2,
         TAG_IDENTITY = 3,
@@ -406,8 +386,8 @@ private:
     // Bit position for different flags for each sharekey. Bits 2 to 7 reserved for future usage.
     enum ShareKeyFlagsId
     {
-        TRUSTED = 0, // If the sharekey is trusted
-        INUSE = 1, // If there is an active outshare or folder-link using the sharekey
+        TRUSTED = 0,    // If the sharekey is trusted
+        INUSE = 1,      // If there is an active outshare or folder-link using the sharekey
     };
 
     // Bitmap with flags for each sharekey. The field is 1 byte size in the attribute.
@@ -449,8 +429,7 @@ private:
     // maps node handle of the shared folder to a pair of sharekey bytes and sharekey flags.
     map<handle, pair<string, ShareKeyFlags>> mShareKeys;
 
-    // maps node handle to the target users (where value can be a user's handle in B64 or the email
-    // address)
+    // maps node handle to the target users (where value can be a user's handle in B64 or the email address)
     map<handle, set<string>> mPendingOutShares;
 
     // maps base64 node handles to pairs of source user handle and share key
@@ -505,10 +484,10 @@ private:
     bool decodeRSAKey();
 
     // update the corresponding authring with `value`, both in KeyManager and MegaClient::mAuthrings
-    void updateAuthring(attr_t at, std::string& value);
+    void updateAuthring(attr_t at, std::string &value);
 
     // update sharekeys (incl. trust). It doesn't purge non-existing items
-    void updateShareKeys(map<handle, pair<std::string, ShareKeyFlags>>& shareKeys);
+    void updateShareKeys(map<handle, pair<std::string, ShareKeyFlags> > &shareKeys);
 
     // true if the credentials of this user require verification
     bool verificationRequired(handle userHandle);
@@ -567,8 +546,7 @@ public:
     // Don't start showing the cookie banner until API says so
     bool mCookieBannerEnabled = false;
 
-    // Consider an account as new if it was created less than X days earlier (right now it's 30days;
-    // received in "ug":"na")
+    // Consider an account as new if it was created less than X days earlier (right now it's 30days; received in "ug":"na")
     bool accountIsNew = false;
 
     // AB Test flags
@@ -579,17 +557,12 @@ public:
 private:
     // Pro Flexi plan is enabled
     bool mProFlexi = false;
-
 public:
-    bool isProFlexi() const
-    {
-        return mProFlexi;
-    }
+    bool isProFlexi() const { return mProFlexi; }
 
     Error sendABTestActive(const char* flag, CommandABTestActive::Completion completion);
 
-    // 2 = Opt-in and unblock SMS allowed 1 = Only unblock SMS allowed 0 = No SMS allowed  -1 = flag
-    // was not received
+    // 2 = Opt-in and unblock SMS allowed 1 = Only unblock SMS allowed 0 = No SMS allowed  -1 = flag was not received
     SmsVerificationState mSmsVerificationState;
 
     // the verified account phone number, filled in from 'ug'
@@ -602,15 +575,12 @@ public:
     bool ephemeralSessionPlusPlus = false;
 
     static TypeOfLink validTypeForPublicURL(nodetype_t type);
-    static string publicLinkURL(bool newLinkFormat, TypeOfLink type, handle ph, const char* key);
+    static string publicLinkURL(bool newLinkFormat, TypeOfLink type, handle ph, const char *key);
 
     string getWritableLinkAuthKey(handle node);
 
     // method to check if a timestamp (m_time_t) is valid or not
-    static bool isValidMegaTimeStamp(m_time_t val)
-    {
-        return val > mega_invalid_timestamp;
-    }
+    static bool isValidMegaTimeStamp(m_time_t val) { return val > mega_invalid_timestamp; }
 
 #ifdef ENABLE_CHAT
     // all chats
@@ -645,8 +615,8 @@ public:
     void cancelsignup();
 
     // full account confirmation/creation support
-    string sendsignuplink2(const char*, const char*, const char*, int ctag = 0);
-    void resendsignuplink2(const char*, const char*);
+    string sendsignuplink2(const char*, const char *, const char*, int ctag = 0);
+    void resendsignuplink2(const char*, const char *);
 
     void confirmsignuplink2(const byte*, unsigned);
     void setkeypair();
@@ -655,29 +625,16 @@ public:
     void prelogin(const char* email, CommandPrelogin::Completion completion = nullptr);
 
     // user login: e-mail, pwkey
-    void login(const char*,
-               const byte*,
-               const char* = NULL,
-               CommandLogin::Completion completion = nullptr);
+    void login(const char*, const byte*, const char* = NULL, CommandLogin::Completion completion = nullptr);
 
     // user login: e-mail, password, salt
-    void login2(const char*,
-                const char*,
-                const string*,
-                const char* = NULL,
-                CommandLogin::Completion completion = nullptr);
+    void login2(const char*, const char*, const string *, const char* = NULL, CommandLogin::Completion completion = nullptr);
 
     // user login: e-mail, derivedkey, 2FA pin
-    void login2(const char*,
-                const byte*,
-                const char* = NULL,
-                CommandLogin::Completion completion = nullptr);
+    void login2(const char*, const byte*, const char* = NULL, CommandLogin::Completion completion = nullptr);
 
     // user login: e-mail, pwkey, emailhash
-    void fastlogin(const char*,
-                   const byte*,
-                   uint64_t,
-                   CommandLogin::Completion completion = nullptr);
+    void fastlogin(const char*, const byte*, uint64_t, CommandLogin::Completion completion = nullptr);
 
     // session login: binary session, bytecount
     void login(string session, CommandLogin::Completion completion = nullptr);
@@ -700,8 +657,7 @@ public:
     // get the public key of an user
     void getpubkey(const char* user);
 
-    // check if logged in (avoid repetitive calls <-- requires call to Cryptopp::InverseMod(), which
-    // is slow)
+    // check if logged in (avoid repetitive calls <-- requires call to Cryptopp::InverseMod(), which is slow)
     sessiontype_t loggedin();
 
     // provide state by change callback
@@ -713,8 +669,7 @@ public:
     // check the reason of being blocked
     void whyamiblocked();
 
-    // sets block state: stops querying for action packets, pauses transfer & removes transfer slot
-    // availability
+    // sets block state: stops querying for action packets, pauses transfer & removes transfer slot availability
     void block(bool fromServerClientResponse = false);
 
     // unsets block state
@@ -746,8 +701,7 @@ public:
     // open the SC database and get the SCSN from it
     void checkForResumeableSCDatabase();
 
-    // set folder link: node, key. authKey is the authentication key to be able to write into the
-    // folder
+    // set folder link: node, key. authKey is the authentication key to be able to write into the folder
     error folderaccess(const char* folderlink,
                        const char* authKey,
                        const bool tryToResumeFolderLinkFromCache = false);
@@ -757,14 +711,14 @@ public:
 
     // decrypt password-protected public link
     // the caller takes the ownership of the returned value in decryptedLink parameter
-    error decryptlink(const char* link, const char* pwd, string* decryptedLink);
+    error decryptlink(const char* link, const char* pwd, string *decryptedLink);
 
     // encrypt public link with password
     // the caller takes the ownership of the returned value
-    error encryptlink(const char* link, const char* pwd, string* encryptedLink);
+    error encryptlink(const char* link, const char* pwd, string *encryptedLink);
 
     // change login password
-    error changepw(const char* password, const char* pin = NULL);
+    error changepw(const char *password, const char *pin = NULL);
 
     // invoked at the moment we actually send `f`
     void resetScForFetchnodes();
@@ -785,41 +739,28 @@ public:
     void fetchContactsKeys();
 
     // fetch keys related to authrings for a given contact
-    void fetchContactKeys(User* user);
+    void fetchContactKeys(User *user);
 
     // track a public key in the authring for a given user
-    error trackKey(attr_t keyType, handle uh, const std::string& key);
+    error trackKey(attr_t keyType, handle uh, const std::string &key);
 
     // track the signature of a public key in the authring for a given user
-    error trackSignature(attr_t signatureType, handle uh, const std::string& signature);
+    error trackSignature(attr_t signatureType, handle uh, const std::string &signature);
 
-    // update the authring if needed on the server and manage the deactivation of the temporal
-    // authring
-    error updateAuthring(AuthRing* authring,
-                         attr_t authringType,
-                         bool temporalAuthring,
-                         handle updateduh);
+    // update the authring if needed on the server and manage the deactivation of the temporal authring
+    error updateAuthring(AuthRing *authring, attr_t authringType, bool temporalAuthring, handle updateduh);
 
-    // set the Ed25519 public key as verified for a given user in the authring (done by user
-    // manually by comparing hash of keys)
+    // set the Ed25519 public key as verified for a given user in the authring (done by user manually by comparing hash of keys)
     error verifyCredentials(handle uh, std::function<void(Error)>);
 
-    // reset the authentication method of Ed25519 key from Fingerprint-verified to Seen for a given
-    // user
-    error resetCredentials(handle uh, std::function<void(Error)>);
+    // reset the authentication method of Ed25519 key from Fingerprint-verified to Seen for a given user
+    error resetCredentials(handle uh, std::function<void (Error)>);
 
     // check credentials are verified for a given user
     bool areCredentialsVerified(handle uh);
 
     // retrieve user details
-    void getaccountdetails(std::shared_ptr<AccountDetails>,
-                           bool,
-                           bool,
-                           bool,
-                           bool,
-                           bool,
-                           bool,
-                           int source = -1);
+    void getaccountdetails(std::shared_ptr<AccountDetails>, bool, bool, bool, bool, bool, bool, int source = -1);
 
     // Get user storage information.
     void getstorageinfo(std::function<void(const StorageInfo&, Error)> completion);
@@ -836,10 +777,7 @@ public:
     static constexpr uint32_t MAX_TAGS_SIZE = 3000;
 
     // update node attributes
-    error setattr(std::shared_ptr<Node>,
-                  attr_map&& updates,
-                  CommandSetAttr::Completion&& c,
-                  bool canChangeVault);
+    error setattr(std::shared_ptr<Node>, attr_map&& updates, CommandSetAttr::Completion&& c, bool canChangeVault);
 
     // prefix and encrypt attribute json
     static void makeattr(SymmCipher*, string*, const char*, int = -1);
@@ -847,9 +785,7 @@ public:
     // convenience version of the above (frequently we are passing a NodeBase's attrstring)
     static void makeattr(SymmCipher*, const std::unique_ptr<string>&, const char*, int = -1);
 
-    error addTagToNode(std::shared_ptr<Node> node,
-                       const std::string& tag,
-                       CommandSetAttr::Completion&& c);
+    error addTagToNode(std::shared_ptr<Node> node, const std::string& tag, CommandSetAttr::Completion&& c);
     static std::vector<std::string> getNodeTags(const std::string& delimitedTags);
     std::vector<std::string> getNodeTags(std::shared_ptr<Node> node);
 
@@ -879,13 +815,8 @@ public:
     auto getNodeTagsBelow(NodeHandle handle, const std::string& pattern = {})
         -> std::optional<std::set<std::string>>;
 
-    error removeTagFromNode(std::shared_ptr<Node> node,
-                            const std::string& tag,
-                            CommandSetAttr::Completion&& c);
-    error updateTagNode(std::shared_ptr<Node>,
-                        const std::string& newTag,
-                        const std::string& oldTag,
-                        CommandSetAttr::Completion&& c);
+    error removeTagFromNode(std::shared_ptr<Node> node, const std::string& tag, CommandSetAttr::Completion&& c);
+    error updateTagNode(std::shared_ptr<Node>, const std::string& newTag, const std::string& oldTag, CommandSetAttr::Completion&& c);
 
     // Returns true if welcome pdf should be imported
     // It's depend on client type (true for ClientType::DEFAULT)
@@ -903,27 +834,15 @@ public:
     error checkmove(Node*, Node*);
 
     // delete node
-    error unlink(Node*,
-                 bool keepversions,
-                 int tag,
-                 bool canChangeVault,
-                 std::function<void(NodeHandle, Error)>&& resultFunction = nullptr);
+    error unlink(Node*, bool keepversions, int tag, bool canChangeVault, std::function<void(NodeHandle, Error)>&& resultFunction = nullptr);
 
-    void unlinkOrMoveBackupNodes(NodeHandle backupRootNode,
-                                 NodeHandle destination,
-                                 std::function<void(Error)> completion);
+    void unlinkOrMoveBackupNodes(NodeHandle backupRootNode, NodeHandle destination, std::function<void(Error)> completion);
 
     // delete all versions
     void unlinkversions();
 
     // move node to new parent folder
-    error rename(std::shared_ptr<Node>,
-                 std::shared_ptr<Node>,
-                 syncdel_t,
-                 NodeHandle prevparenthandle,
-                 const char* newName,
-                 bool canChangeVault,
-                 CommandMoveNode::Completion&& c);
+    error rename(std::shared_ptr<Node>, std::shared_ptr<Node>, syncdel_t, NodeHandle prevparenthandle, const char *newName, bool canChangeVault, CommandMoveNode::Completion&& c);
 
     // create folder node
     error createFolder(std::shared_ptr<Node> parent, const char* name, int rTag);
@@ -934,21 +853,11 @@ public:
     // remove node
     error removeNode(NodeHandle nh, bool keepVersions, int rTag);
 
-    // Queue commands (if needed) to remvoe any outshares (or pending outshares) below the specified
-    // node
+    // Queue commands (if needed) to remvoe any outshares (or pending outshares) below the specified node
     void removeOutSharesFromSubtree(std::shared_ptr<Node> n, int tag);
 
     // start/stop/pause file transfer
-    bool startxfer(direction_t,
-                   File*,
-                   TransferDbCommitter&,
-                   bool skipdupes,
-                   bool startfirst,
-                   bool donotpersist,
-                   VersioningOption,
-                   error* cause,
-                   int tag,
-                   m_off_t availableDiskSpace = 0);
+    bool startxfer(direction_t, File*, TransferDbCommitter&, bool skipdupes, bool startfirst, bool donotpersist, VersioningOption, error* cause, int tag, m_off_t availableDiskSpace = 0);
     void stopxfer(File* f, TransferDbCommitter* committer);
     void pausexfers(direction_t, bool pause, bool hard, TransferDbCommitter& committer);
 
@@ -1010,19 +919,10 @@ public:
                                   std::function<error(std::string&)> addFileAttrsFunc = nullptr);
 
     // helper function for preparing a putnodes call for new folders
-    void putnodes_prepareOneFolder(NewNode* newnode,
-                                   std::string foldername,
-                                   bool canChangeVault,
-                                   std::function<void(AttrMap&)> addAttrs = nullptr);
+    void putnodes_prepareOneFolder(NewNode* newnode, std::string foldername, bool canChangeVault, std::function<void (AttrMap&)> addAttrs = nullptr);
 
-    // static version to be used from worker threads, which cannot rely on the
-    // MegaClient::tmpnodecipher as SymCipher (not thread-safe))
-    static void putnodes_prepareOneFolder(NewNode* newnode,
-                                          std::string foldername,
-                                          PrnGen& rng,
-                                          SymmCipher& tmpnodecipher,
-                                          bool canChangeVault,
-                                          std::function<void(AttrMap&)> addAttrs = nullptr);
+    // static version to be used from worker threads, which cannot rely on the MegaClient::tmpnodecipher as SymCipher (not thread-safe))
+    static void putnodes_prepareOneFolder(NewNode* newnode, std::string foldername, PrnGen& rng, SymmCipher &tmpnodecipher, bool canChangeVault, std::function<void(AttrMap&)> addAttrs = nullptr);
 
     // add nodes to specified parent node (complete upload, copy files, make
     // folders)
@@ -1036,10 +936,7 @@ public:
                   CommandPutNodes::Completion&& completion = nullptr);
 
     // send files/folders to user
-    void putnodes(const char*,
-                  vector<NewNode>&&,
-                  int tag,
-                  CommandPutNodes::Completion&& completion = nullptr);
+    void putnodes(const char*, vector<NewNode>&&, int tag, CommandPutNodes::Completion&& completion = nullptr);
 
     void putFileAttributes(handle h, fatype t, const std::string& encryptedAttributes, int tag);
 
@@ -1050,7 +947,7 @@ public:
     void activatefa();
 
     // queue file attribute retrieval
-    error getfa(handle h, string* fileattrstring, const string& nodekey, fatype, int = 0);
+    error getfa(handle h, string *fileattrstring, const string &nodekey, fatype, int = 0);
 
     // notify delayed upload completion subsystem about new file attribute
     void checkfacompletion(UploadHandle, Transfer* = NULL, bool uploadCompleted = false);
@@ -1065,34 +962,17 @@ public:
                std::function<void(Error)> completion = nullptr);
 
     // attach/update/delete a user attribute
-    void putua(attr_t at,
-               const byte* av = NULL,
-               unsigned avl = 0,
-               int ctag = -1,
-               handle lastPublicHandle = UNDEF,
-               int phtype = 0,
-               int64_t ts = 0,
-               std::function<void(Error)> completion = nullptr);
+    void putua(attr_t at, const byte* av = NULL, unsigned avl = 0, int ctag = -1, handle lastPublicHandle = UNDEF, int phtype = 0, int64_t ts = 0,
+        std::function<void(Error)> completion = nullptr);
 
     // attach/update multiple versioned user attributes at once
-    void putua(userattr_map* attrs, int ctag = -1, std::function<void(Error)> completion = nullptr);
+    void putua(userattr_map *attrs, int ctag = -1, std::function<void(Error)> completion = nullptr);
 
     // queue a user attribute retrieval
-    bool getua(User* u,
-               const attr_t at = ATTR_UNKNOWN,
-               int ctag = -1,
-               CommandGetUA::CompletionErr completionErr = nullptr,
-               CommandGetUA::CompletionBytes completionBytes = nullptr,
-               CommandGetUA::CompletionTLV completionTLV = nullptr);
+    bool getua(User* u, const attr_t at = ATTR_UNKNOWN, int ctag = -1, CommandGetUA::CompletionErr completionErr = nullptr, CommandGetUA::CompletionBytes completionBytes = nullptr, CommandGetUA::CompletionTLV completionTLV = nullptr);
 
     // queue a user attribute retrieval (for non-contacts)
-    void getua(const char* email_handle,
-               const attr_t at = ATTR_UNKNOWN,
-               const char* ph = NULL,
-               int ctag = -1,
-               CommandGetUA::CompletionErr ce = nullptr,
-               CommandGetUA::CompletionBytes cb = nullptr,
-               CommandGetUA::CompletionTLV ctlv = nullptr);
+    void getua(const char* email_handle, const attr_t at = ATTR_UNKNOWN, const char *ph = NULL, int ctag = -1, CommandGetUA::CompletionErr ce = nullptr, CommandGetUA::CompletionBytes cb = nullptr, CommandGetUA::CompletionTLV ctlv = nullptr);
 
     // retrieve the email address of a user
     void getUserEmail(const char* userID);
@@ -1100,19 +980,16 @@ public:
     // Set email for an user
     void setEmail(User* u, const std::string& email);
 
-    //
-    // Account upgrade to V2
-    //
-
+//
+// Account upgrade to V2
+//
 public:
     void saveV1Pwd(const char* pwd);
-
 private:
     void upgradeAccountToV2(const string& pwd, int ctag, std::function<void(error e)> completion);
-    // temporarily stores v1 account password, to allow automatic upgrade to v2 after successful
-    // (full-)login
+    // temporarily stores v1 account password, to allow automatic upgrade to v2 after successful (full-)login
     unique_ptr<pair<string, SymmCipher>> mV1PswdVault;
-    // -------- end of Account upgrade to V2
+// -------- end of Account upgrade to V2
 
 public:
 #ifdef DEBUG
@@ -1129,47 +1006,27 @@ public:
                         const char* abs_c = nullptr);
 
     // delete or block an existing contact
-    error removecontact(const char*,
-                        visibility_t = HIDDEN,
-                        CommandRemoveContact::Completion completion = nullptr);
+    error removecontact(const char*, visibility_t = HIDDEN, CommandRemoveContact::Completion completion = nullptr);
 
     // Migrate the account to start using the new ^!keys attr.
     void upgradeSecurity(std::function<void(Error)> completion);
 
     // Set the flag to enable/disable warnings when sharing with a non-verified contact.
-    void setContactVerificationWarning(bool enabled,
-                                       std::function<void(Error)> completion = nullptr);
+    void setContactVerificationWarning(bool enabled, std::function<void(Error)> completion = nullptr);
 
     // Creates a new share key for the node if there is no share key already created.
-    void openShareDialog(Node* n, std::function<void(Error)> completion);
+    void openShareDialog(Node* n, std::function<void (Error)> completion);
 
     // add/remove/update outgoing share
-    void setshare(std::shared_ptr<Node>,
-                  const char*,
-                  accesslevel_t,
-                  bool writable,
-                  const char*,
-                  int tag,
-                  std::function<void(Error, bool writable)> completion);
+    void setshare(std::shared_ptr<Node>, const char*, accesslevel_t, bool writable, const char*,
+        int tag, std::function<void(Error, bool writable)> completion);
 
-    void setShareCompletion(Node*,
-                            User*,
-                            accesslevel_t,
-                            bool writable,
-                            const char*,
-                            int tag,
-                            std::function<void(Error, bool writable)> completion);
+    void setShareCompletion(Node*, User*, accesslevel_t, bool writable, const char*,
+        int tag, std::function<void(Error, bool writable)> completion);
 
     // Add/delete/remind outgoing pending contact request
-    void setpcr(const char*,
-                opcactions_t,
-                const char* = NULL,
-                const char* = NULL,
-                handle = UNDEF,
-                CommandSetPendingContact::Completion completion = nullptr);
-    void updatepcr(handle,
-                   ipcactions_t,
-                   CommandUpdatePendingContact::Completion completion = nullptr);
+    void setpcr(const char*, opcactions_t, const char* = NULL, const char* = NULL, handle = UNDEF, CommandSetPendingContact::Completion completion = nullptr);
+    void updatepcr(handle, ipcactions_t, CommandUpdatePendingContact::Completion completion = nullptr);
 
     // export node link or remove existing exported link for this node
     error exportnode(std::shared_ptr<Node>,
@@ -1188,7 +1045,7 @@ public:
                            CommandSetPH::CompletionType completion); // auxiliar method to add req
 
     // add timer
-    error addtimer(TimerWithBackoff* twb);
+    error addtimer(TimerWithBackoff *twb);
 
 #ifdef ENABLE_SYNC
     /**
@@ -1346,25 +1203,18 @@ public:
      * It will persist the sync configuration if its call to checkSyncConfig succeeds
      * @param syncConfig the Config to attempt to add (takes ownership)
      * @param completion Completion function
-     * @exludedPath: in sync rework, use this to specify a folder within the sync to exclude (eg,
-     * working folder with sync db in it)
-     * @return API_OK if added to active syncs. (regular) error otherwise (with detail in
-     * syncConfig's SyncError field). Completion is used to signal success/failure.  That may occur
-     * during this call, or in future (after server request/reply etc)
+     * @exludedPath: in sync rework, use this to specify a folder within the sync to exclude (eg, working folder with sync db in it)
+     * @return API_OK if added to active syncs. (regular) error otherwise (with detail in syncConfig's SyncError field).
+     * Completion is used to signal success/failure.  That may occur during this call, or in future (after server request/reply etc)
      */
-    void addsync(SyncConfig&& syncConfig,
-                 std::function<void(error, SyncError, handle)> completion,
-                 const string& logname,
-                 const string& excludedPath);
+    void addsync(SyncConfig&& syncConfig, std::function<void(error, SyncError, handle)> completion, const string& logname, const string& excludedPath);
 
     /**
      * @brief
-     * Create the remote backup dir under //in/"My Backups"/`DEVICE_NAME`/. If `DEVICE-NAME` folder
-     * is missing, create that first.
+     * Create the remote backup dir under //in/"My Backups"/`DEVICE_NAME`/. If `DEVICE-NAME` folder is missing, create that first.
      *
      * @param bkpName
-     * The name of the remote backup dir (desired final outcome is //in/"My
-     * Backups"/`DEVICE_NAME`/bkpName)
+     * The name of the remote backup dir (desired final outcome is //in/"My Backups"/`DEVICE_NAME`/bkpName)
      *
      * @param extDriveRoot
      * Drive root in case backup is from external drive; empty otherwise
@@ -1374,17 +1224,16 @@ public:
      *
      * @return
      * API_OK if remote backup dir has been successfully created.
-     * API_EACCESS if "My Backups" handle could not be obtained from user attribute, or if
-     * `DEVICE_NAME` was not a dir, or if remote backup dir already existed. API_ENOENT if "My
-     * Backups" handle was invalid or its Node was missing. API_EINCOMPLETE if device-id or
-     * device-name could not be obtained Any error returned by readDriveId(), in case of external
-     * drive. Registration occurs later, during addsync(), not in this function. UndoFunction will
-     * be passed on completion, the caller can use it to remove the new backup cloud node if there
-     * is a later failure.
+     * API_EACCESS if "My Backups" handle could not be obtained from user attribute, or if `DEVICE_NAME` was not a dir,
+     * or if remote backup dir already existed.
+     * API_ENOENT if "My Backups" handle was invalid or its Node was missing.
+     * API_EINCOMPLETE if device-id or device-name could not be obtained
+     * Any error returned by readDriveId(), in case of external drive.
+     * Registration occurs later, during addsync(), not in this function.
+     * UndoFunction will be passed on completion, the caller can use it to remove the new backup cloud node if there is a later failure.
      */
     typedef std::function<void(std::function<void()> continuation)> UndoFunction;
-    void preparebackup(SyncConfig,
-                       std::function<void(Error, SyncConfig, UndoFunction revertOnError)>);
+    void preparebackup(SyncConfig, std::function<void(Error, SyncConfig, UndoFunction revertOnError)>);
 
     /**
      * @brief Used to migrate all the sync's management data from MEGAsync to the SDK
@@ -1535,7 +1384,7 @@ public:
     const char* version();
 
     // get the last available version of the app
-    void getlastversion(const char* appKey);
+    void getlastversion(const char *appKey);
 
     // get a local ssl certificate for communications with the webclient
     void getlocalsslcertificate();
@@ -1569,25 +1418,16 @@ public:
     void purchase_begin();
 
     // add item to basket
-    void purchase_additem(int,
-                          handle,
-                          unsigned,
-                          const char*,
-                          unsigned,
-                          const char*,
-                          handle = UNDEF,
-                          int = 0,
-                          int64_t = 0);
+    void purchase_additem(int, handle, unsigned, const char *, unsigned, const char *, handle = UNDEF, int = 0, int64_t = 0);
 
     // submit purchased products for payment
     void purchase_checkout(int);
 
     // submit purchase receipt for verification
-    void
-        submitpurchasereceipt(int, const char*, handle lph = UNDEF, int phtype = 0, int64_t ts = 0);
+    void submitpurchasereceipt(int, const char*, handle lph = UNDEF, int phtype = 0, int64_t ts = 0);
 
     // store credit card
-    error creditcardstore(const char*);
+    error creditcardstore(const char *);
 
     // get credit card subscriptions
     void creditcardquerysubscriptions();
@@ -1600,19 +1440,15 @@ public:
     void getpaymentmethods();
 
     // store user feedback
-    void userfeedbackstore(const char*);
+    void userfeedbackstore(const char *);
 
     // send event
-    void sendevent(int, const char*, const char* viewId = nullptr, bool addJourneyId = false);
-    void sendevent(int,
-                   const char*,
-                   int tag,
-                   const char* viewId = nullptr,
-                   bool addJourneyId = false);
+    void sendevent(int, const char *, const char* viewId = nullptr, bool addJourneyId = false);
+    void sendevent(int, const char *, int tag, const char* viewId = nullptr, bool addJourneyId = false);
     void processHashcashSendevent();
 
     // create support ticket
-    void supportticket(const char* message, int type);
+    void supportticket(const char *message, int type);
 
     // clean rubbish bin
     void cleanrubbishbin();
@@ -1631,28 +1467,16 @@ public:
     // send an sms to verificate a phone number (returns EARGS if phone number has invalid format)
     error smsverificationsend(const string& phoneNumber, bool reVerifyingWhitelisted = false);
 
-    // check the verification code received by sms is valid (returns EARGS if provided code has
-    // invalid format)
+    // check the verification code received by sms is valid (returns EARGS if provided code has invalid format)
     error smsverificationcheck(const string& verificationCode);
 
 #ifdef ENABLE_CHAT
 
     // create a new chat with multiple users and different privileges
-    void createChat(bool group,
-                    bool publicchat,
-                    const userpriv_vector* userpriv = NULL,
-                    const string_map* userkeymap = NULL,
-                    const char* title = NULL,
-                    bool meetingRoom = false,
-                    int chatOptions = ChatOptions::kEmpty,
-                    const ScheduledMeeting* schedMeeting = nullptr);
+    void createChat(bool group, bool publicchat, const userpriv_vector* userpriv = NULL, const string_map* userkeymap = NULL, const char* title = NULL, bool meetingRoom = false, int chatOptions = ChatOptions::kEmpty, const ScheduledMeeting* schedMeeting = nullptr);
 
     // invite a user to a chat
-    void inviteToChat(handle chatid,
-                      handle uh,
-                      int priv,
-                      const char* unifiedkey = NULL,
-                      const char* title = NULL);
+    void inviteToChat(handle chatid, handle uh, int priv, const char *unifiedkey = NULL, const char *title = NULL);
 
     // remove a user from a chat
     void removeFromChat(handle chatid, handle uh);
@@ -1664,7 +1488,7 @@ public:
     void setChatMode(TextChat* chat, bool pubChat);
 
     // process object arrays by the API server (users + privileges)
-    userpriv_vector* readuserpriv(JSON* j);
+    userpriv_vector * readuserpriv(JSON* j);
 
     // grant access to a chat peer to one specific node
     void grantAccessInChat(handle chatid, handle h, const char* peer);
@@ -1679,13 +1503,13 @@ public:
     void truncateChat(handle chatid, handle messageid);
 
     // set title of the chat
-    void setChatTitle(handle chatid, const char* title = NULL);
+    void setChatTitle(handle chatid, const char *title = NULL);
 
     // get the URL of the presence server
     void getChatPresenceUrl();
 
     // register a token device to route push notifications
-    void registerPushNotification(int deviceType, const char* token = NULL);
+    void registerPushNotification(int deviceType, const char *token = NULL);
 
     void archiveChat(handle chatid, bool archived);
 
@@ -1699,20 +1523,17 @@ public:
     void chatlinkurl(handle publichandle);
 
     // convert public chat into private chat
-    void chatlinkclose(handle chatid, const char* title);
+    void chatlinkclose(handle chatid, const char *title);
 
     // auto-join publicchat
-    void chatlinkjoin(handle publichandle, const char* unifiedkey);
+    void chatlinkjoin(handle publichandle, const char *unifiedkey);
 
-    // set retention time for a chatroom in seconds, after which older messages in the chat are
-    // automatically deleted
+    // set retention time for a chatroom in seconds, after which older messages in the chat are automatically deleted
     void setchatretentiontime(handle chatid, unsigned period);
 
     // parse scheduled meeting or scheduled meeting occurrences
-    error parseScheduledMeetings(std::vector<std::unique_ptr<ScheduledMeeting>>& schedMeetings,
-                                 bool parsingOccurrences,
-                                 JSON* j,
-                                 bool parseOnce = false,
+    error parseScheduledMeetings(std::vector<std::unique_ptr<ScheduledMeeting> > &schedMeetings,
+                                 bool parsingOccurrences, JSON *j, bool parseOnce = false,
                                  handle* originatingUser = nullptr,
                                  UserAlert::UpdatedScheduledMeeting::Changeset* cs = nullptr,
                                  handle_set* childMeetingsDeleted = nullptr);
@@ -1722,10 +1543,10 @@ public:
 #endif
 
     // get mega achievements
-    void getaccountachievements(AchievementsDetails* details);
+    void getaccountachievements(AchievementsDetails *details);
 
     // get mega achievements list (for advertising for unregistered users)
-    void getmegaachievements(AchievementsDetails* details);
+    void getmegaachievements(AchievementsDetails *details);
 
     // get welcome pdf
     void importOrDelayWelcomePdf();
@@ -1754,7 +1575,7 @@ public:
     m_off_t getmaxuploadspeed();
 
     // get the handle of the older version for a NewNode
-    std::shared_ptr<Node> getovnode(Node* parent, string* name);
+    std::shared_ptr<Node> getovnode(Node *parent, string *name);
 
     // Load from db node children at first level
     sharedNode_list getChildren(const Node* parent,
@@ -1805,22 +1626,10 @@ private:
 
     // flag to start / stop the request status monitor
     bool mReqStatEnabled = false;
-
 public:
-    bool requestStatusMonitorEnabled()
-    {
-        return mReqStatEnabled;
-    }
-
-    void startRequestStatusMonitor()
-    {
-        mReqStatEnabled = true;
-    }
-
-    void stopRequestStatusMonitor()
-    {
-        mReqStatEnabled = false;
-    }
+    bool requestStatusMonitorEnabled() { return mReqStatEnabled; }
+    void startRequestStatusMonitor() { mReqStatEnabled = true; }
+    void stopRequestStatusMonitor() { mReqStatEnabled = false; }
 
     // timestamp until the bandwidth is overquota in deciseconds, related to Waiter::ds
     m_time_t overquotauntil;
@@ -1828,13 +1637,10 @@ public:
     // storage status
     storagestatus_t ststatus;
 
-    class CacheableStatusMap: private map<int64_t, CacheableStatus>
+    class CacheableStatusMap : private map<int64_t, CacheableStatus>
     {
     public:
-        CacheableStatusMap(MegaClient* client)
-        {
-            mClient = client;
-        }
+        CacheableStatusMap(MegaClient *client) { mClient = client; }
 
         // returns the cached value for type, or defaultValue if not found
         int64_t lookup(CacheableStatus::Type type, int64_t defaultValue);
@@ -1842,20 +1648,16 @@ public:
         // add/update cached status, both in memory and DB
         bool addOrUpdate(CacheableStatus::Type type, int64_t value);
 
-        // adds a new item to the map. It also initializes dedicated vars in the client (used to
-        // load from DB)
+        // adds a new item to the map. It also initializes dedicated vars in the client (used to load from DB)
         void loadCachedStatus(CacheableStatus::Type type, int64_t value);
 
         // for unserialize
-        CacheableStatus* getPtr(CacheableStatus::Type type);
+        CacheableStatus *getPtr(CacheableStatus::Type type);
 
-        void clear()
-        {
-            map::clear();
-        }
+        void clear() { map::clear(); }
 
     private:
-        MegaClient* mClient = nullptr;
+        MegaClient *mClient = nullptr;
     };
 
     // cacheable status
@@ -1946,7 +1748,7 @@ private:
     BackoffTimer btworkinglock;
     BackoffTimer btreqstat;
 
-    vector<TimerWithBackoff*> bttimers;
+    vector<TimerWithBackoff *> bttimers;
 
     // server-client command trigger connection
     std::unique_ptr<HttpReq> pendingsc;
@@ -1956,10 +1758,9 @@ private:
     int mPendingCatchUps = 0;
     bool mReceivingCatchUp = false;
 
-    // account is blocked: stops querying for action packets, pauses transfer & removes transfer
-    // slot availability
+    // account is blocked: stops querying for action packets, pauses transfer & removes transfer slot availability
     bool mBlocked = false;
-    bool mBlockedSet = false; // value set in current execution
+    bool mBlockedSet = false; //value set in current execution
 
     bool pendingscTimedOut = false;
 
@@ -1984,19 +1785,16 @@ public:
 
     std::atomic<bool> mEnableSearchDBIndexes{true};
 
-    struct FolderLink
-    {
+    struct FolderLink {
         // public handle of the folder link ('&n=' param in the POST)
         handle mPublicHandle = UNDEF;
 
         // auth token that enables writing into the folder link (appended to the `n` param in POST)
-        string mWriteAuth; // (optional, only for writable links)
+        string mWriteAuth;      // (optional, only for writable links)
 
-        // auth token that relates the usage of the folder link to a user's session id ('&sid='
-        // param in the POST)
-        string mAccountAuth; // (optional, set by the app)
+        // auth token that relates the usage of the folder link to a user's session id ('&sid=' param in the POST)
+        string mAccountAuth;    // (optional, set by the app)
     };
-
     FolderLink mFolderLink;
 
     // API response JSON object
@@ -2028,8 +1826,7 @@ public:
     static const unsigned MAX_RAIDTRANSFERS_FOR_MOBILE;
 
     // meaningful portion of the maximum transfer queue size to consider raid representation
-    // i.e., there must be at least this number of raid transfers to let us predict whether the next
-    // download transfer will be raided or non-raided
+    // i.e., there must be at least this number of raid transfers to let us predict whether the next download transfer will be raided or non-raided
     static const unsigned MEANINGFUL_PORTION_OF_MAXTRANSFERS_QUEUE_FOR_RAID_PREDICTIVE_SYSTEM;
 
     // maximum number of queued putfa before halting the upload queue
@@ -2195,8 +1992,7 @@ public:
     // DB access
     DbAccess* dbaccess = nullptr;
 
-    // DbTable iface to handle "statecache" for logged in user (implemented at SqliteAccountState
-    // object)
+    // DbTable iface to handle "statecache" for logged in user (implemented at SqliteAccountState object)
     unique_ptr<DbTable> sctable;
 
     // NodeManager instance to wrap all access to Node objects
@@ -2210,12 +2006,10 @@ public:
     // transfer cache table
     unique_ptr<DbTable> tctable;
 
-    // during processing of request responses, transfer table updates can be wrapped up in a single
-    // begin/commit
+    // during processing of request responses, transfer table updates can be wrapped up in a single begin/commit
     TransferDbCommitter* mTctableRequestCommitter = nullptr;
 
-    // status cache table for logged in user. For data pertaining status which requires immediate
-    // commits
+    // status cache table for logged in user. For data pertaining status which requires immediate commits
     unique_ptr<DbTable> statusTable;
 
     // scsn as read from sctable
@@ -2238,25 +2032,21 @@ public:
     // logout. It's cleaned after reload or other error is generated
     DBError mLastDBErrorDetected = DBError::DB_ERROR_UNKNOWN;
 
-    // initial state load in progress?  initial state can come from the database cache or via an 'f'
-    // command to the API. Either way there can still be a lot of historic actionpackets to follow
-    // since that snaphot, especially if the user has not been online for a long time.
+    // initial state load in progress?  initial state can come from the database cache or via an 'f' command to the API.
+    // Either way there can still be a lot of historic actionpackets to follow since that snaphot, especially if the user has not been online for a long time.
     bool fetchingnodes;
     int fetchnodestag;
 
     // set true after fetchnodes and catching up on actionpackets, stays true after that.
     std::atomic<bool> statecurrent;
 
-    // actionpackets are up to date (similar to statecurrent but false if in the middle of
-    // spoonfeeding etc)
+    // actionpackets are up to date (similar to statecurrent but false if in the middle of spoonfeeding etc)
     std::atomic<bool> actionpacketsCurrent;
 
-    // This flag is used to ensure we load Syncs just once per user session, even if a fetchnodes
-    // reload occurs after the first one
+    // This flag is used to ensure we load Syncs just once per user session, even if a fetchnodes reload occurs after the first one
     bool syncsAlreadyLoadedOnStatecurrent = false;
 
-    // subsequent fetchnodes should use the 'nocache' flag, so that we don't have difficulties with
-    // actionpackets getting to a later SCSN than we had before
+    // subsequent fetchnodes should use the 'nocache' flag, so that we don't have difficulties with actionpackets getting to a later SCSN than we had before
     bool fetchnodesAlreadyCompletedThisSession = false;
 
     // File Attribute upload system.  These can come from:
@@ -2279,9 +2069,8 @@ public:
     string mReqHashcashToken;
     uint8_t mReqHashcashEasiness{};
 
-    // Only queue the "Server busy" event once, until the current cs completes, otherwise we may
-    // DDOS ourselves in cases where many clients get 500s for a while and then recover at the same
-    // time
+    // Only queue the "Server busy" event once, until the current cs completes, otherwise we may DDOS
+    // ourselves in cases where many clients get 500s for a while and then recover at the same time
     bool pendingcs_serverBusySent = false;
 
     // pending HTTP requests
@@ -2289,29 +2078,12 @@ public:
 
     // record type indicator for sctable
     // allways add new ones at the end of the enum, otherwise it will mess up the db!
-    enum
-    {
-        CACHEDSCSN,
-        CACHEDNODE,
-        CACHEDUSER,
-        CACHEDLOCALNODE,
-        CACHEDPCR,
-        CACHEDTRANSFER,
-        CACHEDFILE,
-        CACHEDCHAT,
-        CACHEDSET,
-        CACHEDSETELEMENT,
-        CACHEDDBSTATE,
-        CACHEDALERT
-    } sctablerectype;
+    enum { CACHEDSCSN, CACHEDNODE, CACHEDUSER, CACHEDLOCALNODE, CACHEDPCR, CACHEDTRANSFER, CACHEDFILE, CACHEDCHAT, CACHEDSET, CACHEDSETELEMENT, CACHEDDBSTATE, CACHEDALERT } sctablerectype;
 
     void persistAlert(UserAlert::Base* a);
 
     // record type indicator for statusTable
-    enum StatusTableRecType
-    {
-        CACHEDSTATUS
-    };
+    enum StatusTableRecType { CACHEDSTATUS };
 
     // open/create "statecache" and "nodes" tables in DB
     void opensctable();
@@ -2390,16 +2162,15 @@ public:
     void pendingattrstring(UploadHandle, string*);
 
     // active/pending direct reads
-    handledrn_map hdrns; // DirectReadNodes, main ownership.  One per file, each with one DirectRead
-                         // per client request.
-    dsdrn_map dsdrns; // indicates the time at which DRNs should be retried
-    dr_list drq; // DirectReads that are in DirectReadNodes which have fectched URLs
-    drs_list drss; // DirectReadSlot for each DR in drq, up to Max
+    handledrn_map hdrns;   // DirectReadNodes, main ownership.  One per file, each with one DirectRead per client request.
+    dsdrn_map dsdrns;      // indicates the time at which DRNs should be retried
+    dr_list drq;           // DirectReads that are in DirectReadNodes which have fectched URLs
+    drs_list drss;         // DirectReadSlot for each DR in drq, up to Max
     void removeAppData(void* t); // remove appdata (usually a MegaTransfer*) from every DirectRead
 
     // merge newly received share into nodes
     void mergenewshares(bool notify, bool skipWriteInDb = false);
-    void mergenewshare(NewShare* s, bool notify, bool skipWriteInDb); // merge only the given share
+    void mergenewshare(NewShare *s, bool notify, bool skipWriteInDb);    // merge only the given share
 
     // return the list of incoming shared folder (only top level, nested inshares are skipped)
     sharedNode_vector getInShares();
@@ -2430,12 +2201,10 @@ public:
         }
     }
 
-    // return the list of verified incoming shared folders (only top level, nested inshares are
-    // skipped)
+    // return the list of verified incoming shared folders (only top level, nested inshares are skipped)
     sharedNode_vector getVerifiedInShares();
 
-    // return the list of unverified incoming shared folders (only top level, nested inshares are
-    // skipped)
+    // return the list of unverified incoming shared folders (only top level, nested inshares are skipped)
     sharedNode_vector getUnverifiedInShares();
 
     // transfer queues (PUT/GET)
@@ -2530,7 +2299,7 @@ public:
 
 #ifdef ENABLE_CHAT
     textchat_map chatnotify;
-    void notifychat(TextChat*);
+    void notifychat(TextChat *);
 
     // process mcsm array at fetchnodes
     void procmcsm(JSON*);
@@ -2548,9 +2317,7 @@ public:
     shared_ptr<Node> nodeByHandle(NodeHandle);
     shared_ptr<Node> nodebyhandle(handle);
 
-    shared_ptr<Node> nodeByPath(const char* path,
-                                std::shared_ptr<Node> node = nullptr,
-                                nodetype_t type = TYPE_UNKNOWN);
+    shared_ptr<Node> nodeByPath(const char* path, std::shared_ptr<Node> node = nullptr, nodetype_t type = TYPE_UNKNOWN);
 
     using TotpTokenResult = std::pair<int, std::pair<std::string, unsigned>>;
     TotpTokenResult generateTotpTokenFromNode(const handle h);
@@ -2571,27 +2338,26 @@ public:
                                           m_time_t since,
                                           bool excludeSensitives = true);
 
-    // determine if the file is a video, photo, or media (video or photo).  If the extension (with
-    // trailing .) is not precalculated, pass null
-    bool nodeIsMedia(const Node*, bool* isphoto, bool* isvideo) const;
+    // determine if the file is a video, photo, or media (video or photo).  If the extension (with trailing .) is not precalculated, pass null
+    bool nodeIsMedia(const Node*, bool *isphoto, bool *isvideo) const;
 
     // determine if the file is a photo.
-    bool nodeIsPhoto(const Node* n, bool checkPreview) const;
+    bool nodeIsPhoto(const Node *n, bool checkPreview) const;
 
     // determine if the file is a video.
-    bool nodeIsVideo(const Node* n) const;
+    bool nodeIsVideo(const Node *n) const;
 
     // determine if the file is an audio.
-    bool nodeIsAudio(const Node* n) const;
+    bool nodeIsAudio(const Node *n) const;
 
     // determine if the file is a document.
-    bool nodeIsDocument(const Node* n) const;
+    bool nodeIsDocument(const Node *n) const;
 
     // determine if the file is a PDF.
-    bool nodeIsPdf(const Node* n) const;
+    bool nodeIsPdf(const Node *n) const;
 
     // determine if the file is a presentation.
-    bool nodeIsPresentation(const Node* n) const;
+    bool nodeIsPresentation(const Node *n) const;
 
     // determine if the file is an archive.
     bool nodeIsArchive(const Node* n) const;
@@ -2632,43 +2398,24 @@ public:
     // we are adding the //bin/SyncDebris/yyyy-mm-dd subfolder(s)
     bool syncdebrisadding;
 
-    // minute of the last created folder in SyncDebris (don't attempt creation more frequently than
-    // once per minute)
+    // minute of the last created folder in SyncDebris (don't attempt creation more frequently than once per minute)
     m_time_t syncdebrisminute;
 
-    // move nodes to //bin/SyncDebris/yyyy-mm-dd/ or copy to //bin/SyncDebris/yyyy-mm-dd/ folder and
-    // unlink
-    void movetosyncdebris(Node*,
-                          bool inshare,
-                          std::function<void(NodeHandle, Error)>&& completion,
-                          bool canChangeVault);
+    // move nodes to //bin/SyncDebris/yyyy-mm-dd/ or copy to //bin/SyncDebris/yyyy-mm-dd/ folder and unlink
+    void movetosyncdebris(Node*, bool inshare, std::function<void(NodeHandle, Error)>&& completion, bool canChangeVault);
 
     // move queued nodes to SyncDebris (for syncing into the user's own cloud drive)
-    void execmovetosyncdebris(Node* n,
-                              std::function<void(NodeHandle, Error)>&& completion,
-                              bool canChangeVault,
-                              bool isInshare);
+    void execmovetosyncdebris(Node* n, std::function<void(NodeHandle, Error)>&& completion, bool canChangeVault, bool isInshare);
 
     std::shared_ptr<Node> getOrCreateSyncdebrisFolder();
-
-    struct pendingDebrisRecord
-    {
+    struct pendingDebrisRecord {
         NodeHandle nodeHandle;
         std::function<void(NodeHandle, Error)> completion;
         bool mIsInshare = false;
         bool mCanChangeVault = false;
-
-        pendingDebrisRecord(NodeHandle h,
-                            std::function<void(NodeHandle, Error)> c,
-                            bool inshare,
-                            bool changeVault):
-            nodeHandle(h),
-            completion(c),
-            mIsInshare(inshare),
-            mCanChangeVault(changeVault)
-        {}
+        pendingDebrisRecord(NodeHandle h, std::function<void(NodeHandle, Error)> c, bool inshare, bool changeVault)
+            : nodeHandle(h), completion(c), mIsInshare(inshare), mCanChangeVault(changeVault) {}
     };
-
     list<pendingDebrisRecord> pendingDebris;
 
 #endif
@@ -2703,31 +2450,16 @@ public:
 #endif
 
     // process object arrays by the API server
-    int readnodes(JSON*,
-                  int,
-                  putsource_t,
-                  vector<NewNode>*,
-                  bool modifiedByThisClient,
-                  bool applykeys,
-                  Node* priorActionpacketDeletedNode,
-                  bool* firstHandleMismatchedDelete);
+    int readnodes(JSON*, int, putsource_t, vector<NewNode>*, bool modifiedByThisClient, bool applykeys, Node* priorActionpacketDeletedNode, bool* firstHandleMismatchedDelete);
 
     // process a JSON node object
     // possible results:
     // 0 -> no object found
     // 1 -> successful parsing
     // any other number -> parsing error
-    int readnode(JSON*,
-                 int,
-                 putsource_t,
-                 vector<NewNode>*,
-                 bool modifiedByThisClient,
-                 bool applykeys,
-                 NodeManager::MissingParentNodes& missingParentNodes,
-                 handle& previousHandleForAlert,
-                 set<NodeHandle>* allParents,
-                 Node* priorActionpacketDeletedNode,
-                 bool* firstHandleMatchesDelete);
+    int readnode(JSON*, int, putsource_t, vector<NewNode>*, bool modifiedByThisClient, bool applykeys,
+                 NodeManager::MissingParentNodes& missingParentNodes, handle &previousHandleForAlert, set<NodeHandle> *allParents,
+                 Node *priorActionpacketDeletedNode, bool *firstHandleMatchesDelete);
 
     void readok(JSON*);
     void readokelement(JSON*);
@@ -2763,16 +2495,12 @@ public:
     void warn(const char*);
     bool warnlevel();
 
-    std::shared_ptr<Node> childnodebyname(const Node* parent,
-                                          const char* name,
-                                          bool skipFolders = false);
+    std::shared_ptr<Node> childnodebyname(const Node *parent, const char* name, bool skipFolders = false);
     sharedNode_vector childnodesbyname(Node* parent, const char* name, bool skipFolders = false);
-    std::shared_ptr<Node> childnodebynametype(Node* parent,
-                                              const char* name,
-                                              nodetype_t mustBeType);
+    std::shared_ptr<Node> childnodebynametype(Node* parent, const char* name, nodetype_t mustBeType);
     std::shared_ptr<Node> childnodebyattribute(Node* parent, nameid attrId, const char* attrValue);
 
-    static void honorPreviousVersionAttrs(Node* previousNode, AttrMap& attrs);
+    static void honorPreviousVersionAttrs(Node *previousNode, AttrMap &attrs);
 
     // purge account state and abort server-client connection
     void purgenodesusersabortsc(bool keepOwnUser);
@@ -2823,8 +2551,7 @@ public:
     // set when keys for every current contact have been checked
     AuthRingsMap mAuthRings;
 
-    // used during initialization to accumulate required updates to authring (to send them all
-    // atomically)
+    // used during initialization to accumulate required updates to authring (to send them all atomically)
     AuthRingsMap mAuthRingsTemp;
 
     // Pending contact keys during initialization
@@ -2842,8 +2569,7 @@ public:
     // distinguish activity from different MegaClients in logs
     string clientname;
 
-    // number our http requests so we can distinguish them (and the curl debug logging for them) in
-    // logs
+    // number our http requests so we can distinguish them (and the curl debug logging for them) in logs
     unsigned transferHttpCounter = 0;
 
     // apply keys
@@ -2860,7 +2586,7 @@ public:
     void discarduser(handle, bool = true);
     void discarduser(const char*);
     void mappcr(handle, unique_ptr<PendingContactRequest>&&);
-    bool discardnotifieduser(User*);
+    bool discardnotifieduser(User *);
 
     PendingContactRequest* findpcr(handle);
     std::optional<PendingContactRequest*> findpcr(const string&);
@@ -2880,7 +2606,7 @@ public:
     // builds the authentication URI to be sent in POST requests
     string getAuthURI(bool supressSID = false, bool supressAuthKey = false);
 
-    bool setlang(string* code);
+    bool setlang(string *code);
 
     // Enable create DB indexes for queries used in search functionality
     // By default is true (reset to default value at locallogout)
@@ -2889,31 +2615,22 @@ public:
     // It should be call just after open the DB
     void dropSearchDBIndexes();
 
-    // create a new folder with given name and stores its node's handle into the user's attribute
-    // ^!bak
-    error setbackupfolder(const char* foldername,
-                          int tag,
-                          std::function<void(Error)> addua_completion);
+    // create a new folder with given name and stores its node's handle into the user's attribute ^!bak
+    error setbackupfolder(const char* foldername, int tag, std::function<void(Error)> addua_completion);
 
-    // fetch backups and syncs from BC, search bkpId among them, pause/resume the backup or sync,
-    // update sds attribute
-    void updateStateInBC(handle bkpId,
-                         CommandBackupPut::SPState newState,
-                         std::function<void(const Error&)> f);
+    // fetch backups and syncs from BC, search bkpId among them, pause/resume the backup or sync, update sds attribute
+    void updateStateInBC(handle bkpId, CommandBackupPut::SPState newState, std::function<void(const Error&)> f);
 
-    // fetch backups and syncs from BC, search bkpId among them, disable the backup or sync, update
-    // sds attribute, for a backup move or delete its contents
+    // fetch backups and syncs from BC, search bkpId among them, disable the backup or sync, update sds attribute, for a backup move or delete its contents
     void removeFromBC(handle bkpId, handle bkpDest, std::function<void(const Error&)> f);
 
     // fetch backups and syncs from BC
-    void getBackupInfo(
-        std::function<void(const Error&, const vector<CommandBackupSyncFetch::Data>&)> f);
+    void getBackupInfo(std::function<void(const Error&, const vector<CommandBackupSyncFetch::Data>&)> f);
 
     // sets the auth token to be used when logged into a folder link
-    void setFolderLinkAccountAuth(const char* auth);
+    void setFolderLinkAccountAuth(const char *auth);
 
-    // returns the public handle of the folder link if the account is logged into a public folder,
-    // otherwise UNDEF.
+    // returns the public handle of the folder link if the account is logged into a public folder, otherwise UNDEF.
     handle getFolderLinkPublicHandle();
 
     // check if end call reason is valid
@@ -2922,21 +2639,17 @@ public:
     // check if there is a valid folder link (rootnode received and the valid key)
     bool isValidFolderLink();
 
-    // returns the top-level node for a node
+    //returns the top-level node for a node
     shared_ptr<Node> getrootnode(shared_ptr<Node>);
 
-    // returns true if the node referenced by the handle belongs to the logged-in account
+    //returns true if the node referenced by the handle belongs to the logged-in account
     bool isPrivateNode(NodeHandle h);
 
-    // returns true if the node referenced by the handle belongs to other account than the logged-in
-    // account
+    //returns true if the node referenced by the handle belongs to other account than the logged-in account
     bool isForeignNode(NodeHandle h);
 
     // process node subtree
-    void proctree(std::shared_ptr<Node>,
-                  TreeProc*,
-                  bool skipinshares = false,
-                  bool skipversions = false);
+    void proctree(std::shared_ptr<Node>, TreeProc*, bool skipinshares = false, bool skipversions = false);
 
     // hash password
     error pw_key(const char*, byte*) const;
@@ -2953,13 +2666,13 @@ public:
     SymmCipher* getRecycledTemporaryNodeCipher(const byte* newKey);
 
     // request a link to recover account
-    void getrecoverylink(const char* email, bool hasMasterkey);
+    void getrecoverylink(const char *email, bool hasMasterkey);
 
     // query information about recovery link
-    void queryrecoverylink(const char* link);
+    void queryrecoverylink(const char *link);
 
     // request private key for integrity checking the masterkey
-    void getprivatekey(const char* code);
+    void getprivatekey(const char *code);
 
     // confirm a recovery link to restore the account
     void confirmrecoverylink(const char* code,
@@ -2969,16 +2682,16 @@ public:
                              int ownAccountVersion = 1);
 
     // request a link to cancel the account
-    void getcancellink(const char* email, const char* = NULL);
+    void getcancellink(const char *email, const char* = NULL);
 
     // confirm a link to cancel the account
-    void confirmcancellink(const char* code);
+    void confirmcancellink(const char *code);
 
     // get a link to change the email address
-    void getemaillink(const char* email, const char* pin = NULL);
+    void getemaillink(const char *email, const char *pin = NULL);
 
     // confirm a link to change the email address
-    void confirmemaillink(const char* code, const char* email, const byte* pwkey);
+    void confirmemaillink(const char *code, const char *email, const byte *pwkey);
 
     // create contact link
     void contactlinkcreate(bool renew);
@@ -3031,8 +2744,7 @@ public:
 
     bool executingLocalLogout = false;
 
-    // the logout request succeeded, time to clean up localy once returned from CS response
-    // processing
+    // the logout request succeeded, time to clean up localy once returned from CS response processing
     std::function<void(MegaClient*)> mOnCSCompletion;
 
     // true if the account is a master business account, false if it's a sub-user account
@@ -3056,43 +2768,41 @@ public:
     // Keep track of high level operation counts and times, for performance analysis
     struct PerformanceStats
     {
-        CodeCounter::ScopeStats execFunction = {"MegaClient_exec"};
-        CodeCounter::ScopeStats transferslotDoio = {"TransferSlot_doio"};
-        CodeCounter::ScopeStats execdirectreads = {"execdirectreads"};
-        CodeCounter::ScopeStats transferComplete = {"transfer_complete"};
-        CodeCounter::ScopeStats megaapiSendPendingTransfers = {"megaapi_sendtransfers"};
-        CodeCounter::ScopeStats prepareWait = {"MegaClient_prepareWait"};
-        CodeCounter::ScopeStats doWait = {"MegaClient_doWait"};
-        CodeCounter::ScopeStats checkEvents = {"MegaClient_checkEvents"};
-        CodeCounter::ScopeStats applyKeys = {"MegaClient_applyKeys"};
-        CodeCounter::ScopeStats dispatchTransfers = {"dispatchTransfers"};
-        CodeCounter::ScopeStats csResponseProcessingTime = {"cs batch response processing"};
-        CodeCounter::ScopeStats csSuccessProcessingTime = {"cs batch received processing"};
-        CodeCounter::ScopeStats scProcessingTime = {"sc processing"};
+        CodeCounter::ScopeStats execFunction = { "MegaClient_exec" };
+        CodeCounter::ScopeStats transferslotDoio = { "TransferSlot_doio" };
+        CodeCounter::ScopeStats execdirectreads = { "execdirectreads" };
+        CodeCounter::ScopeStats transferComplete = { "transfer_complete" };
+        CodeCounter::ScopeStats megaapiSendPendingTransfers = { "megaapi_sendtransfers" };
+        CodeCounter::ScopeStats prepareWait = { "MegaClient_prepareWait" };
+        CodeCounter::ScopeStats doWait = { "MegaClient_doWait" };
+        CodeCounter::ScopeStats checkEvents = { "MegaClient_checkEvents" };
+        CodeCounter::ScopeStats applyKeys = { "MegaClient_applyKeys" };
+        CodeCounter::ScopeStats dispatchTransfers = { "dispatchTransfers" };
+        CodeCounter::ScopeStats csResponseProcessingTime = { "cs batch response processing" };
+        CodeCounter::ScopeStats csSuccessProcessingTime = { "cs batch received processing" };
+        CodeCounter::ScopeStats scProcessingTime = { "sc processing" };
 #ifdef ENABLE_SYNC
-        CodeCounter::ScopeStats recursiveSyncTime = {"recursiveSync"};
-        CodeCounter::ScopeStats computeSyncTripletsTime = {"computeSyncTriplets"};
-        CodeCounter::ScopeStats inferSyncTripletsTime = {"inferSyncTriplets"};
-        CodeCounter::ScopeStats syncItem = {"syncItem"};
-        CodeCounter::ScopeStats syncItemCheckMove = {"syncItemCheckMove"};
-        CodeCounter::ScopeStats syncItemXXX = {"syncItemXXX"};
-        CodeCounter::ScopeStats syncItemXXF = {"syncItemXXF"};
-        CodeCounter::ScopeStats syncItemXSX = {"syncItemXSX"};
-        CodeCounter::ScopeStats syncItemXSF = {"syncItemXSF"};
-        CodeCounter::ScopeStats syncItemCXX = {"syncItemCXX"};
-        CodeCounter::ScopeStats syncItemCXF = {"syncItemCXF"};
-        CodeCounter::ScopeStats syncItemCSX = {"syncItemCSX"};
-        CodeCounter::ScopeStats syncItemCSF = {"syncItemCSF"};
-        CodeCounter::ScopeStats clientThreadActions = {"clientThreadActions"};
+        CodeCounter::ScopeStats recursiveSyncTime = { "recursiveSync" };
+        CodeCounter::ScopeStats computeSyncTripletsTime = { "computeSyncTriplets" };
+        CodeCounter::ScopeStats inferSyncTripletsTime = { "inferSyncTriplets" };
+        CodeCounter::ScopeStats syncItem = { "syncItem" };
+        CodeCounter::ScopeStats syncItemCheckMove = { "syncItemCheckMove" };
+        CodeCounter::ScopeStats syncItemXXX = { "syncItemXXX" };
+        CodeCounter::ScopeStats syncItemXXF = { "syncItemXXF" };
+        CodeCounter::ScopeStats syncItemXSX = { "syncItemXSX" };
+        CodeCounter::ScopeStats syncItemXSF = { "syncItemXSF" };
+        CodeCounter::ScopeStats syncItemCXX = { "syncItemCXX" };
+        CodeCounter::ScopeStats syncItemCXF = { "syncItemCXF" };
+        CodeCounter::ScopeStats syncItemCSX = { "syncItemCSX" };
+        CodeCounter::ScopeStats syncItemCSF = { "syncItemCSF" };
+        CodeCounter::ScopeStats clientThreadActions = { "clientThreadActions" };
 #endif
         uint64_t transferStarts = 0, transferFinishes = 0;
         uint64_t transferTempErrors = 0, transferFails = 0;
-        uint64_t prepwaitImmediate = 0, prepwaitZero = 0, prepwaitHttpio = 0, prepwaitFsaccess = 0,
-                 nonzeroWait = 0;
+        uint64_t prepwaitImmediate = 0, prepwaitZero = 0, prepwaitHttpio = 0, prepwaitFsaccess = 0, nonzeroWait = 0;
         CodeCounter::DurationSum csRequestWaitTime;
         CodeCounter::DurationSum transfersActiveTime;
-        std::string
-            report(bool reset, HttpIO* httpio, Waiter* waiter, const RequestDispatcher& reqs);
+        std::string report(bool reset, HttpIO* httpio, Waiter* waiter, const RequestDispatcher& reqs);
     } performanceStats;
 
     std::string getDeviceidHash();
@@ -3114,149 +2824,113 @@ public:
 
     enum class ClientType
     {
-        DEFAULT = 0, // same as MegaApi::CLIENT_TYPE_DEFAULT
+        DEFAULT = 0,        // same as MegaApi::CLIENT_TYPE_DEFAULT
         VPN,
         PASSWORD_MANAGER,
     };
 
-    MegaClient(MegaApp*,
-               shared_ptr<Waiter>,
-               HttpIO*,
-               DbAccess*,
-               GfxProc*,
-               const char*,
-               const char*,
-               unsigned workerThreadCount,
-               ClientType clientType = ClientType::DEFAULT);
+    MegaClient(MegaApp*, shared_ptr<Waiter>, HttpIO*, DbAccess*, GfxProc*, const char*, const char*, unsigned workerThreadCount, ClientType clientType = ClientType::DEFAULT);
     ~MegaClient();
 
-    struct MyAccountData
-    {
-        void setProLevel(AccountType prolevel)
-        {
-            mProLevel = prolevel;
-        }
+struct MyAccountData
+{
+    void setProLevel(AccountType prolevel) { mProLevel = prolevel; }
+    AccountType getProLevel() { return mProLevel; };
+    void setProUntil(m_time_t prountil) { mProUntil = prountil; }
 
-        AccountType getProLevel()
-        {
-            return mProLevel;
-        };
+    // returns remaining time for the current pro-level plan
+    // keep in mind that free plans do not have a remaining time; instead, the IP bandwidth is reset after a back off period
+    m_time_t getTimeLeft();
 
-        void setProUntil(m_time_t prountil)
-        {
-            mProUntil = prountil;
-        }
+private:
+    AccountType mProLevel = AccountType::ACCOUNT_TYPE_UNKNOWN;
+    m_time_t mProUntil = -1;
+} mMyAccount;
 
-        // returns remaining time for the current pro-level plan
-        // keep in mind that free plans do not have a remaining time; instead, the IP bandwidth is
-        // reset after a back off period
-        m_time_t getTimeLeft();
+// JourneyID for cs API requests and log events. Populated from "ug"/"gmf" commands response.
+// It is kept in memory and persisted in disk until a full logout.
+struct JourneyID
+{
+private:
+    // The JourneyID value - a 16-char hex string (or an empty string if it hasn't been retrieved yet)
+    string mJidValue;
+    // The tracking flag: used to attach the JourneyID to cs requests
+    bool mTrackValue;
+    // Local cache file
+    unique_ptr<FileSystemAccess>& mClientFsaccess;
+    LocalPath mCacheFilePath;
+    bool storeValuesToCache(bool storeJidValue, bool storeTrackValue) const;
 
-    private:
-        AccountType mProLevel = AccountType::ACCOUNT_TYPE_UNKNOWN;
-        m_time_t mProUntil = -1;
-    } mMyAccount;
+public:
+    static constexpr size_t HEX_STRING_SIZE = 16;
+    JourneyID(unique_ptr<FileSystemAccess>& clientFsaccess, const LocalPath& rootPath);
+    // Updates the JourneyID and the tracking flag based on the provided jidValue, which must be a 16-char hex string.
+    // When jidValue is not empty:
+    // - Sets mJidValue to jidValue only if it is currently unset (empty).
+    // - Sets mTrackValue if it is currently unset (false).
+    // When jidValue is empty:
+    // - Keeps mJidValue unchanged.
+    // - Unsets mTrackValue if it is currently set (true).
+    // Returns true if either the JourneyID (mJidValue) or the tracking flag (mTrackValue) have been updated.
+    bool setValue(const string& jidValue);
+    // Get the JourneyID (empty if still unset)
+    string getValue() const;
+    // Check if the tracking flag is set, i.e.: the JourneyID must be tracked (used in cs API reqs)
+    bool isTrackingOn() const;
+    // Load the JourneyID and the tracking flag stored in the cache file.
+    bool loadValuesFromCache();
+    // Remove local cache file and reset the JourneyID so a new one can be set from the next "ug"/"gmf" command.
+    bool resetCacheAndValues();
+};
 
-    // JourneyID for cs API requests and log events. Populated from "ug"/"gmf" commands response.
-    // It is kept in memory and persisted in disk until a full logout.
-    struct JourneyID
-    {
-    private:
-        // The JourneyID value - a 16-char hex string (or an empty string if it hasn't been
-        // retrieved yet)
-        string mJidValue;
-        // The tracking flag: used to attach the JourneyID to cs requests
-        bool mTrackValue;
-        // Local cache file
-        unique_ptr<FileSystemAccess>& mClientFsaccess;
-        LocalPath mCacheFilePath;
-        bool storeValuesToCache(bool storeJidValue, bool storeTrackValue) const;
-
-    public:
-        static constexpr size_t HEX_STRING_SIZE = 16;
-        JourneyID(unique_ptr<FileSystemAccess>& clientFsaccess, const LocalPath& rootPath);
-        // Updates the JourneyID and the tracking flag based on the provided jidValue, which must be
-        // a 16-char hex string. When jidValue is not empty:
-        // - Sets mJidValue to jidValue only if it is currently unset (empty).
-        // - Sets mTrackValue if it is currently unset (false).
-        // When jidValue is empty:
-        // - Keeps mJidValue unchanged.
-        // - Unsets mTrackValue if it is currently set (true).
-        // Returns true if either the JourneyID (mJidValue) or the tracking flag (mTrackValue) have
-        // been updated.
-        bool setValue(const string& jidValue);
-        // Get the JourneyID (empty if still unset)
-        string getValue() const;
-        // Check if the tracking flag is set, i.e.: the JourneyID must be tracked (used in cs API
-        // reqs)
-        bool isTrackingOn() const;
-        // Load the JourneyID and the tracking flag stored in the cache file.
-        bool loadValuesFromCache();
-        // Remove local cache file and reset the JourneyID so a new one can be set from the next
-        // "ug"/"gmf" command.
-        bool resetCacheAndValues();
-    };
-
-    ClientType getClientType() const
-    {
-        return mClientType;
-    }
-
-    bool isClientType(const ClientType& t) const
-    {
-        return mClientType == t;
-    }
+    ClientType getClientType() const { return mClientType; }
+    bool isClientType(const ClientType& t) const { return mClientType == t; }
 
 private:
     ClientType mClientType;
 
-    // Since it's quite expensive to create a SymmCipher, this are provided to use for quick
-    // operations - just set the key and use.
+    // Since it's quite expensive to create a SymmCipher, this are provided to use for quick operations - just set the key and use.
     SymmCipher tmpnodecipher;
 
-    // Since it's quite expensive to create a SymmCipher, this is provided to use for quick
-    // operation - just set the key and use.
+    // Since it's quite expensive to create a SymmCipher, this is provided to use for quick operation - just set the key and use.
     SymmCipher tmptransfercipher;
 
     error changePasswordV1(User* u, const char* password, const char* pin);
     error changePasswordV2(const char* password, const char* pin);
-    void fillCypheredAccountDataV2(const char* password,
-                                   vector<byte>& clientRandomValue,
-                                   vector<byte>& encmasterkey,
-                                   string& hashedauthkey,
-                                   string& salt);
+    void fillCypheredAccountDataV2(const char* password, vector<byte>& clientRandomValue, vector<byte>& encmasterkey,
+                                   string& hashedauthkey, string& salt);
 
     static vector<byte> deriveKey(const char* password, const string& salt, size_t derivedKeySize);
 
-    //
-    // JourneyID and ViewID
-    //
+//
+// JourneyID and ViewID
+//
     // JourneyID for cs API requests and log events
     std::unique_ptr<JourneyID> mJourneyId;
 
 public:
+
     // Checks if there is a valid JourneyID and tracking flag is set
     bool trackJourneyId() const;
 
-    // Retrieves the JourneyID value, which is a 16-character hexadecimal string (for submission to
-    // the API) If the JourneyID is still unset, it returns an empty string.
+    // Retrieves the JourneyID value, which is a 16-character hexadecimal string (for submission to the API)
+    // If the JourneyID is still unset, it returns an empty string.
     string getJourneyId() const;
 
     // Load the JourneyID values from the local cache.
     bool loadJourneyIdCacheValues();
 
-    // Set the JourneyID value from a 16-character hexadecimal string (obtained from API commands
-    // "ug"/"gmf") See JourneyID::setValue() for full doc
+    // Set the JourneyID value from a 16-character hexadecimal string (obtained from API commands "ug"/"gmf")
+    // See JourneyID::setValue() for full doc
     bool setJourneyId(const string& jid);
 
-    // Generates a unique ViewID that the caller should store and can optionally use in subsequent
-    // sendevent() calls. ViewID is employed by apps for event logging. It is generated by the SDK
-    // to ensure consistent and shared logic across applications.
+    // Generates a unique ViewID that the caller should store and can optionally use in subsequent sendevent() calls.
+    // ViewID is employed by apps for event logging. It is generated by the SDK to ensure consistent and shared logic across applications.
     static string generateViewId(PrnGen& rng);
 
-    //
-    // Sets and Elements
-    //
+//
+// Sets and Elements
+//
 
     // generate "asp" command
     void putSet(Set&& s, std::function<void(Error, const Set*)> completion);
@@ -3268,10 +2942,7 @@ public:
     void fetchSetInPreviewMode(std::function<void(Error, Set*, elementsmap_t*)> completion);
 
     // generate "aepb" command
-    void putSetElements(
-        vector<SetElement>&& els,
-        std::function<void(Error, const vector<const SetElement*>*, const vector<int64_t>*)>
-            completion);
+    void putSetElements(vector<SetElement>&& els, std::function<void(Error, const vector<const SetElement*>*, const vector<int64_t>*)> completion);
 
     // generate "aep" command
     void putSetElement(SetElement&& el, std::function<void(Error, const SetElement*)> completion);
@@ -3288,18 +2959,13 @@ public:
     bool procaesp(JSON& j);
 
     // load Sets and Elements from json
-    error readSetsAndElements(JSON& j,
-                              map<handle, Set>& newSets,
-                              map<handle, elementsmap_t>& newElements);
+    error readSetsAndElements(JSON& j, map<handle, Set>& newSets, map<handle, elementsmap_t>& newElements);
 
     // return Set with given setID or nullptr if it was not found
     const Set* getSet(handle setID) const;
 
     // return all available Sets, indexed by id
-    const map<handle, Set>& getSets() const
-    {
-        return mSets;
-    }
+    const map<handle, Set>& getSets() const { return mSets; }
 
     // add new Set or replace exisiting one
     const Set* addSet(Set&& a);
@@ -3334,34 +3000,18 @@ public:
     pair<error, string> getPublicSetLink(handle setID) const;
 
     // returns error code and public handle for the link provided as a param
-    error fetchPublicSet(const char* publicSetLink,
-                         std::function<void(Error, Set*, elementsmap_t*)>);
+    error fetchPublicSet(const char* publicSetLink, std::function<void(Error, Set*, elementsmap_t*)>);
 
-    void stopSetPreview()
-    {
-        if (mPreviewSet)
-            mPreviewSet.reset();
-    }
+    void stopSetPreview() { if (mPreviewSet) mPreviewSet.reset(); }
 
-    bool inPublicSetPreview() const
-    {
-        return !!mPreviewSet;
-    }
+    bool inPublicSetPreview() const { return !!mPreviewSet; }
 
     const SetElement* getPreviewSetElement(handle eid) const
-    {
-        return isElementInPreviewSet(eid) ? &mPreviewSet->mElements[eid] : nullptr;
-    }
+    { return isElementInPreviewSet(eid) ? &mPreviewSet->mElements[eid] : nullptr; }
 
-    const Set* getPreviewSet() const
-    {
-        return inPublicSetPreview() ? &mPreviewSet->mSet : nullptr;
-    }
-
+    const Set* getPreviewSet() const { return inPublicSetPreview() ? &mPreviewSet->mSet : nullptr; }
     const elementsmap_t* getPreviewSetElements() const
-    {
-        return inPublicSetPreview() ? &mPreviewSet->mElements : nullptr;
-    }
+    { return inPublicSetPreview() ? &mPreviewSet->mElements : nullptr; }
 
 private:
     error readSets(JSON& j, map<handle, Set>& sets);
@@ -3375,9 +3025,7 @@ private:
     error readSetsPublicHandles(JSON& j, map<handle, Set>& sets);
     error readSetPublicHandle(JSON& j, map<handle, Set>& sets);
     void fixSetElementWithWrongKey(const Set& set);
-    size_t decryptAllSets(map<handle, Set>& newSets,
-                          map<handle, elementsmap_t>& newElements,
-                          map<handle, SetElement::NodeMetadata>* nodeData);
+    size_t decryptAllSets(map<handle, Set>& newSets, map<handle, elementsmap_t>& newElements, map<handle, SetElement::NodeMetadata>* nodeData);
     error decryptSetData(Set& s);
     error decryptElementData(SetElement& el, const string& setKey);
     string decryptKey(const string& encryptedKey, SymmCipher& cipher) const;
@@ -3415,18 +3063,13 @@ private:
         Set mSet;
         elementsmap_t mElements;
     };
-
     unique_ptr<SetLink> mPreviewSet;
 
     bool isElementInPreviewSet(handle eid) const
-    {
-        return mPreviewSet && (mPreviewSet->mElements.find(eid) != end(mPreviewSet->mElements));
-    }
+    { return mPreviewSet && (mPreviewSet->mElements.find(eid) != end(mPreviewSet->mElements)); }
+// -------- end of Sets and Elements
 
-    // -------- end of Sets and Elements
-
-    // Generates a key pair (x25519 (Cu) key pair) to use for Vpn Credentials
-    // (MegaClient::putVpnCredential)
+    // Generates a key pair (x25519 (Cu) key pair) to use for Vpn Credentials (MegaClient::putVpnCredential)
     StringKeyPair generateVpnKeyPair();
 
     /**
@@ -3462,16 +3105,13 @@ public:
     void getVpnCredentials(CommandGetVpnCredentials::Cb&& = nullptr /* Completion */);
 
     // Call "vpnp" command.
-    void putVpnCredential(std::string&& /* VPN Region */,
-                          CommandPutVpnCredential::Cb&& = nullptr /* Completion */);
+    void putVpnCredential(std::string&& /* VPN Region */, CommandPutVpnCredential::Cb&& = nullptr /* Completion */);
 
     // Call "vpnd" command.
-    void delVpnCredential(int /* SlotID */,
-                          CommandDelVpnCredential::Cb&& = nullptr /* Completion */);
+    void delVpnCredential(int /* SlotID */, CommandDelVpnCredential::Cb&& = nullptr /* Completion */);
 
     // Call "vpnc" command.
-    void checkVpnCredential(std::string&& /* User Public Key */,
-                            CommandCheckVpnCredential::Cb&& = nullptr /* Completion */);
+    void checkVpnCredential(std::string&& /* User Public Key */, CommandCheckVpnCredential::Cb&& = nullptr /* Completion */);
 
     /**
      * @brief Generates a VPN credential string equivalent to the .conf file generated by the
@@ -3743,16 +3383,8 @@ public:
                                              const bool useSymbols,
                                              const unsigned int length);
 
-    void setEnabledNotifications(std::vector<uint32_t>&& notifs)
-    {
-        mEnabledNotifications = std::move(notifs);
-    }
-
-    const std::vector<uint32_t>& getEnabledNotifications() const
-    {
-        return mEnabledNotifications;
-    }
-
+    void setEnabledNotifications(std::vector<uint32_t>&& notifs) { mEnabledNotifications = std::move(notifs); }
+    const std::vector<uint32_t>& getEnabledNotifications() const { return mEnabledNotifications; }
     void getNotifications(CommandGetNotifications::ResultFunc onResult);
     std::pair<uint32_t, uint32_t> getFlag(const char* flagName);
 
@@ -3826,7 +3458,8 @@ private:
      * @param result
      * The result of our attempt to log the user in.
      */
-    void injectSyncSensitiveData(CommandLogin::Completion callback, Error result);
+    void injectSyncSensitiveData(CommandLogin::Completion callback,
+                                 Error result);
 #endif // ENABLE_SYNC
 
     /**
@@ -3843,7 +3476,8 @@ private:
      * @param result
      * The result of our attempt to create the user's JSCD user attributes.
      */
-    void JSCDataCreated(GetJSCDataCallback& callback, Error result);
+    void JSCDataCreated(GetJSCDataCallback& callback,
+                        Error result);
 
     /**
      * @brief
@@ -3870,7 +3504,7 @@ private:
 
     // Last known capacity retrieved from the cloud.
     m_off_t mLastKnownCapacity = -1;
-
+    
 private:
     m_off_t processSCChunk(const char* chunk);
     size_t chunkedSCProgress();
@@ -3895,15 +3529,7 @@ private:
 
 } // namespace
 
-#define char_is_not_digit \
-    [](unsigned char c) \
-    { \
-        return !::mega::is_digit(c); \
-    }
-#define char_is_not_space \
-    [](unsigned char c) \
-    { \
-        return !::mega::is_space(c); \
-    }
+#define char_is_not_digit [](unsigned char c) { return !::mega::is_digit(c); }
+#define char_is_not_space [](unsigned char c) { return !::mega::is_space(c); }
 
 #endif
