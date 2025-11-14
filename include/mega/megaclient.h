@@ -3512,6 +3512,7 @@ private:
     void setupSCFilters();
     bool checksca(JSON* json);
     bool procsca(JSON* json);
+    bool finishActionPackets(std::unique_lock<recursive_mutex>& nodeTreeLock);
 
     // JSON jsonsc_chunked;
     JSONSplitter mSCJsonSplitter;
