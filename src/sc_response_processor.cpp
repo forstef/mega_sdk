@@ -277,6 +277,7 @@ void MegaClient::setupSCFilters()
                            if (!mFirstChunkProcessed)
                            {
                                statecurrent = false;
+                               actionpacketsCurrent = false;
 
                                assert(!mNodeTreeIsChanging.owns_lock());
                                mNodeTreeIsChanging =
