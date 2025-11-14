@@ -3269,10 +3269,9 @@ void MegaClient::exec()
                         pendingsc->purge(consumedBytes);
                         pendingsc.reset();
                         btsc.reset();
-                    } // or there are some reasons which cause can not be processed rignt now,
-                        // eg., cmds in filght, keep it to original logic
-
-                    break;
+                        break;
+                    } 
+                    // fall through
                 }
 
                 if (*pendingsc->in.c_str() == '{')
@@ -3462,10 +3461,6 @@ void MegaClient::exec()
 
                                 pendingsc->purge(consumedBytes);
                             }
-
-                            // // abortlockrequest();
-                            // // app->request_response_progress(pendingsc->bufpos,
-                            // //                                pendingsc->contentlength);
                             pendingsc->notifiedbufpos = pendingsc->bufpos;
                         }
                     }
@@ -6611,38 +6606,38 @@ bool MegaClient::sc_checkActionPacket(JSON* json, Node* lastAPDeletedNode)
     {
         switch (json->getnameid())
         {
-            case makeNameid("a"): // action referred by the packet
-                cmd = json->getnameid();
-                break;
+        case makeNameid("a"): // action referred by the packet
+            cmd = json->getnameid();
+            break;
 
-            case makeNameid("i"): // id of the client who made the action triggering this packet
-                json->storeobject();
-                break;
+        case makeNameid("i"): // id of the client who made the action triggering this packet
+            json->storeobject();
+            break;
 
-            case makeNameid("st"): // sequence tag
+        case makeNameid("st"): // sequence tag
+        {
+            string tag;
+            json->storeobject(&tag);
+            return sc_checkSequenceTag(tag);
+        }
+
+        default:
+            // if we reach any other tag, then 'st' is not present.
+
+            if (cmd == makeNameid("t") && lastAPDeletedNode &&
+                dynamic_cast<CommandMoveNode*>(reqs.getCurrentCommand(mCurrentSeqtagSeen)))
             {
-                string tag;
-                json->storeobject(&tag);
-                return sc_checkSequenceTag(tag);
+                // special case for actionpackets from the move command - the 'd'+'t' sequence
+                // has the tag on 'd' but not 't'. However we must process the 't' as part of
+                // the move, and only call the command completion after.
+                LOG_verbose << clientname << "st tag implicitly not changing for moves";
+                return true;
             }
-
-            default:
-                // if we reach any other tag, then 'st' is not present.
-
-                if (cmd == makeNameid("t") && lastAPDeletedNode &&
-                    dynamic_cast<CommandMoveNode*>(reqs.getCurrentCommand(mCurrentSeqtagSeen)))
-                {
-                    // special case for actionpackets from the move command - the 'd'+'t' sequence
-                    // has the tag on 'd' but not 't'. However we must process the 't' as part of
-                    // the move, and only call the command completion after.
-                    LOG_verbose << clientname << "st tag implicitly not changing for moves";
-                    return true;
-                }
-                else
-                {
-                    // Action Packet with no Sequence Tag.
-                    return sc_checkSequenceTag(string());
-                }
+            else
+            {
+                // Action Packet with no Sequence Tag.
+                return sc_checkSequenceTag(string());
+            }
         }
     }
 }
