@@ -36,6 +36,17 @@ extern void read_pw_char(char*, int, int*, char**);
 
 typedef list<struct AppFile*> appfile_list;
 
+class MyOutput: public Logger
+{
+public:
+    void log(const char* time, int loglevel, const char* source, const char* message)
+    {
+        (void)loglevel;
+        std::cout << "{" << time << "}"
+                  << " [" << source << "] " << message << std::endl;
+    }
+};
+
 struct AppFile : public File
 {
     // app-internal sequence number for queue management
