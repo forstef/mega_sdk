@@ -3550,6 +3550,7 @@ void MegaClient::exec()
                 }
 
                 pendingsc->type = REQ_JSON;
+                pendingsc->mChunked = true;
                 pendingsc->post(this);
                 app->notify_network_activity(NetworkActivityChannel::SC,
                                              NetworkActivityType::REQUEST_SENT,
